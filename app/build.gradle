@@ -1,0 +1,83 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'packer'
+
+//gradlePlugin {
+//    plugins {
+//        PackerPlugin {
+//            id = 'com.nier.plugin'
+//            implementationClass = 'com.nier.plugin.PackerPlugin'
+//        }
+//    }
+//}
+
+buildscript {
+    repositories {
+        maven {
+            url uri('../publish')
+        }
+        google()
+        jcenter()
+    }
+    dependencies {
+//        classpath fileTree(dir: 'libs', include: ['*.jar'])
+//        classpath files('libs/packer-0.0.1.jar')
+        classpath 'com.nier.packer:packer:1.0'
+    }
+
+}
+
+ext {
+    age = 26
+    fgd = "jack"
+}
+
+
+//packer{
+//    id=123
+//    param="Null Param"
+//    map=["key1":"value1","key2":"value2"]
+//}
+
+
+android {
+    compileSdkVersion 27
+    defaultConfig {
+        applicationId "com.nier.mypluginapplication"
+        minSdkVersion 15
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        debug {
+
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    flavorDimensions "mine"
+    productFlavors {
+        nier {}
+
+        fgd {}
+    }
+    buildToolsVersion '27.0.3'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    api "org.jetbrains.anko:anko-common:$anko_version"
+}
