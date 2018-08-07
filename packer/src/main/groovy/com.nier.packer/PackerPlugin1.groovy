@@ -15,12 +15,12 @@ class PackerPlugin1 implements Plugin<Project> {
         project.afterEvaluate {
             it.android.applicationVariants.all { BaseVariant variant ->
                 println("variant --> ${variant.name}")
-                project.task("pack${it.name.capitalize()}",
-                        type: InjectTask) {
-                    dependsOn variant.assemble
-                    packer = project.packer
-                    sourceVariant = variant
-                }
+//                project.task("pack${it.name.capitalize()}",
+//                        type: InjectTask) {
+//                    dependsOn variant.assemble
+//                    packer = project.packer
+//                    sourceVariant = variant
+//                }
             }
         }
     }

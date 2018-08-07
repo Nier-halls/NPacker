@@ -10,21 +10,22 @@ import java.io.File
  * Created by Nier
  * Date 2018/7/26
  */
-class InjectTask : DefaultTask() {
+open class InjectTask : DefaultTask() {
 
-    @Input
-    lateinit var packer: PackerExtensions
+    var packer: PackerExtension? = null
 
-    @Input
-    lateinit var sourceVariant: BaseVariant
+    var sourceVariant: BaseVariant? = null
 
     @TaskAction
     fun inject() {
-        val sourceApk = sourceVariant.outputs
+        println("start Inject task.")
+        val sourceApk = sourceVariant?.outputs
                 ?.elementAt(0)
                 ?.outputFile
-        val copiedApk = File(project.rootProject.buildDir, "apk")
-        if (verfyApk(sourceApk!!)) {
+        println("sourceApk path >>> ${sourceApk?.absolutePath}")
+        val copiedApk = File(project.rootProject.buildDir, "tmp.apk")
+        if (verifyApk(sourceApk!!)) {
+            println("verify success!!!")
             copyFile(sourceApk, copiedApk)
         }
     }

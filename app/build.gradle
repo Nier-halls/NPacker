@@ -3,14 +3,6 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'packer'
 
-//gradlePlugin {
-//    plugins {
-//        PackerPlugin {
-//            id = 'com.nier.plugin'
-//            implementationClass = 'com.nier.plugin.PackerPlugin'
-//        }
-//    }
-//}
 
 buildscript {
     repositories {
@@ -21,24 +13,16 @@ buildscript {
         jcenter()
     }
     dependencies {
-//        classpath fileTree(dir: 'libs', include: ['*.jar'])
-//        classpath files('libs/packer-0.0.1.jar')
         classpath 'com.nier.packer:packer:1.0'
     }
 
 }
 
-ext {
-    age = 26
-    fgd = "jack"
+packer {
+    id = 100000024
+    param = "Empty Param"
+    map = ["key1": "value1", "key2": "value2"]
 }
-
-
-//packer{
-//    id=123
-//    param="Null Param"
-//    map=["key1":"value1","key2":"value2"]
-//}
 
 
 android {

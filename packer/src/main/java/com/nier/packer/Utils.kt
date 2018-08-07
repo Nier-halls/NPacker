@@ -3,6 +3,7 @@ package com.nier.packer
 import com.android.apksig.ApkVerifier
 import java.io.File
 import java.io.FileInputStream
+import java.io.RandomAccessFile
 import java.nio.channels.FileChannel
 
 /**
@@ -19,26 +20,23 @@ fun copyFile(source: File, destination: File): Boolean {
     }
     var sourceChannel: FileChannel? = null
     var destinationChannel: FileChannel? = null
-
     try {
         sourceChannel = FileInputStream(source).channel
-        destinationChannel = FileInputStream(destination).channel
+        destinationChannel = RandomAccessFile(destination, "rw").channel
         destinationChannel.transferFrom(sourceChannel!!, 0, sourceChannel.size())
     } catch (e: Exception) {
         e.printStackTrace()
         return false
     } finally {
-        sourceChannel?.let {
-            sourceChannel.close()
-        }
+        sourceChannel?.close()// >>>> 'let'和'?.'有什么区别
         destinationChannel?.let {
-            destinationChannel.close()
+            it.close()
         }
     }
     return true
 }
 
-fun verfyApk(apkFile: File): Boolean {
+fun verifyApk(apkFile: File): Boolean {
     if (!apkFile.exists()) {
         return false
     }
