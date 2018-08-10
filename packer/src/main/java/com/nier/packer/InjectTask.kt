@@ -12,7 +12,7 @@ import java.io.File
  */
 open class InjectTask : DefaultTask() {
 
-    var packer: PackerExtension? = null
+    var packerExtension: PackerExtension? = null
 
     var sourceVariant: BaseVariant? = null
 
@@ -23,11 +23,14 @@ open class InjectTask : DefaultTask() {
                 ?.elementAt(0)
                 ?.outputFile
         println("sourceApk path >>> ${sourceApk?.absolutePath}")
-        val copiedApk = File(project.rootProject.buildDir, "tmp.apk")
+        val copiedApk = File(project.rootProject.buildDir, "tmp${sourceVariant?.name?.capitalize()}.apk")
         if (verifyApk(sourceApk!!)) {
             println("verify success!!!")
             copyFile(sourceApk, copiedApk)
+        } else {
+            println("verify failed!!!")
         }
+
     }
 
 }

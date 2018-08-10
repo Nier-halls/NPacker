@@ -1,6 +1,7 @@
 package com.nier.packer
 
 import com.android.build.gradle.AppExtension
+import com.android.build.gradle.api.BaseVariant
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.Plugin
@@ -17,8 +18,7 @@ import java.util.function.Consumer
  */
 open class PackerPlugin : Plugin<Project> {
 
-    override fun apply(project: Project?) {
-        project ?: return
+    override fun apply(project: Project) {
         project.extensions.create("packer", PackerExtension::class.java)
         project.afterEvaluate(Action {
             //extensions
@@ -29,15 +29,48 @@ open class PackerPlugin : Plugin<Project> {
 
             val appExtension = this.extensions["android"] as? AppExtension ?: return@Action
             appExtension.applicationVariants.forEach(Consumer { variant ->
-                //                project.task("packer${variant.name.capitalize()}" , type = InjectTask::class)
-                project.task("packer${variant.name.capitalize()}", InjectTask::class) {
-                    println("task name >>> ${this.name}")
-                    this.dependsOn.add(variant.assemble)
-                    this.packer = customExtension
-                    this.sourceVariant = variant
-                }
-                println("variant -> ${variant.name}")
+                generateTaskAndBuildDepends(project, variant)
             })
         })
+    }
+}
+
+
+fun generateTaskAndBuildDepends(project: Project, variant: BaseVariant) {
+    val customExtension = project.extensions["packer"] as? PackerExtension
+    //create packTask
+    val packTask = project.task("packer${variant.name.capitalize()}", InjectTask::class) {
+        println("create task -> ${this.name}")
+        this.dependsOn.add(variant.assemble)
+        this.packerExtension = customExtension
+        this.sourceVariant = variant
+    }
+    //create buildTypeTask
+    val buildTypeName = "packer${variant.buildType.name.capitalize()}"
+    val typeTask = project.tasks.findByName(buildTypeName)
+            ?: generateTypeTask(project, buildTypeName)
+    //buildTypeTask dependsOn packTask
+    typeTask.dependsOn.add(packTask)
+
+    //create rootTask
+    val rootTask = project.tasks.findByName(ROOT_TASK_NAME)
+            ?: generateRootTask(project)
+    //rootTask dependsOn buildTypeTask, run rootTask build all apk
+    if (typeTask !in rootTask.dependsOn) {
+        rootTask.dependsOn.add(typeTask)
+    }
+}
+
+val generateRootTask: (Project) -> Task = {
+    val rootTask = it.task(ROOT_TASK_NAME) {
+        //todo print and check configuration
+        println("create root task -> ${this.name}")
+    }
+    rootTask
+}
+
+val generateTypeTask: (Project, String) -> Task = { project, name ->
+    project.task(name) {
+        println("create type task -> ${this.name}")
     }
 }

@@ -35,12 +35,22 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        v2 {
+            storeFile file("${rootProject.projectDir.path}\\plugin_app.jks")
+            storePassword '123456'
+            keyAlias 'key0'
+            keyPassword '123456'
+            v2SigningEnabled true
+        }
+    }
     buildTypes {
         debug {
-
+            signingConfig signingConfigs.v2
         }
         release {
             minifyEnabled false
+            signingConfig signingConfigs.v2
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

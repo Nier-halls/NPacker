@@ -38,6 +38,7 @@ fun copyFile(source: File, destination: File): Boolean {
 
 fun verifyApk(apkFile: File): Boolean {
     if (!apkFile.exists()) {
+        println("apkFile no exit.")
         return false
     }
     val apkVerifier = ApkVerifier.Builder(apkFile).build()
@@ -49,6 +50,7 @@ fun verifyApk(apkFile: File): Boolean {
                 result.isVerifiedUsingV2Scheme
     } catch (e: Exception) {
         e.printStackTrace()
+        println("verifyApk on error. errorMessage -> ${e.message}")
         false
     }
 
