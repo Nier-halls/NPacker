@@ -37,7 +37,7 @@ android {
     }
     signingConfigs {
         v2 {
-            storeFile file("${rootProject.projectDir.path}\\plugin_app.jks")
+            storeFile file("${rootProject.projectDir.path}${File.separator}plugin_app.jks")
             storePassword '123456'
             keyAlias 'key0'
             keyPassword '123456'
