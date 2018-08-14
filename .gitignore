@@ -18,5 +18,6 @@
 *.iml
 /.idea
 /.gradle
+/.gradle.properties
 
 .DS_Store
