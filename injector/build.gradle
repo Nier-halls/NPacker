@@ -26,6 +26,11 @@ sourceCompatibility = 1.8
 repositories {
     mavenCentral()
 }
+
+//defaultConfig {
+//    projectPath = project.rootDir
+//}
+
 //sourceSets {
 //    main.java.srcDirs += "src/main/java"
 //    main.kotlin.srcDirs += "src/main/kotlin"

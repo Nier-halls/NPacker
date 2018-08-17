@@ -7,9 +7,10 @@ import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.kotlin.dsl.closureOf
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.task
+import org.gradle.api.internal.HasConvention
+import org.gradle.api.plugins.Convention
+import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.kotlin.dsl.*
 import java.util.function.Consumer
 
 /**
@@ -39,14 +40,14 @@ open class PackerPlugin : Plugin<Project> {
 fun generateTaskAndBuildDepends(project: Project, variant: BaseVariant) {
     val customExtension = project.extensions["packer"] as? PackerExtension
     //create packTask
-    val packTask = project.task("packer${variant.name.capitalize()}", InjectTask::class) {
+    val packTask = project.task("${PACK_TASK_PREFIX}${variant.name.capitalize()}", InjectTask::class) {
         println("create task -> ${this.name}")
         this.dependsOn.add(variant.assemble)
         this.packerExtension = customExtension
         this.sourceVariant = variant
     }
     //create buildTypeTask
-    val buildTypeName = "packer${variant.buildType.name.capitalize()}"
+    val buildTypeName = "${PACK_TASK_PREFIX}${variant.buildType.name.capitalize()}"
     val typeTask = project.tasks.findByName(buildTypeName)
             ?: generateTypeTask(project, buildTypeName)
     //buildTypeTask dependsOn packTask

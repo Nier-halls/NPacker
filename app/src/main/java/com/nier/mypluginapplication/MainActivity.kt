@@ -4,7 +4,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import com.nier.inject.findApkEOCDSignature
 
 /**
  * Created by Nier
@@ -24,7 +23,5 @@ class MainActivity : AppCompatActivity() {
         }
 
         Log.d("fgd", ">>>>>>>> ActivityThread -> sPackageManager = ${getPackageManagerProxy()}")
-
-        findApkEOCDSignature()
     }
 }

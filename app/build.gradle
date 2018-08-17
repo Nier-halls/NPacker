@@ -76,3 +76,6 @@ dependencies {
 //    implementation project(":injector")
     api "org.jetbrains.anko:anko-common:$anko_version"
 }
+
+//convention.getPlugin(com.nier.packer.PackerPluginConvention).apkName = "HaHa"
+//convention.getPlugin(com.nier.packer.PackerPluginConvention).addChannels("Channel1","Channel2")

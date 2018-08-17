@@ -11,6 +11,7 @@ import java.io.File
  * Date 2018/7/26
  */
 open class InjectTask : DefaultTask() {
+    val outputPath = "${project.rootDir}${File.separator}injector"
 
     var packerExtension: PackerExtension? = null
 
@@ -22,8 +23,9 @@ open class InjectTask : DefaultTask() {
         val sourceApk = sourceVariant?.outputs
                 ?.elementAt(0)
                 ?.outputFile
-        println("sourceApk path >>> ${sourceApk?.absolutePath}")
-        val copiedApk = File(project.rootProject.buildDir, "tmp${sourceVariant?.name?.capitalize()}.apk")
+        println("output path >>> ${outputPath}")
+        println("build dir >>> ${project.rootProject.buildDir}")
+        val copiedApk = File(outputPath, "tmp${sourceVariant?.name?.capitalize()}.apk")
         if (verifyApk(sourceApk!!)) {
             println("verify success!!!")
             copyFile(sourceApk, copiedApk)
