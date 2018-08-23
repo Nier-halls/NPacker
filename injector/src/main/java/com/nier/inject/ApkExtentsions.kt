@@ -1,62 +1,24 @@
 package com.nier.inject
 
+import com.android.apksig.ApkVerifier
 import java.io.File
 import java.io.IOException
-import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 
 /**
- * Author fangguodong
- * Date   2018-08-14 12:03 AM
- * E-mail fangguodong@myhexin.com
- *
- * todo ByteBuffer object pool
+ * Created by Nier
+ * Date 2018/8/23
  */
-
-
-fun main(args: Array<String>) {
-
-    val apk = findApk()
-    if (!apk.exists()) println("apk not found.")
-    //创建只读流
-    RandomAccessFile(apk, "r").channel.use {
-        val apkEOCDSignOffset = findApkEOCDSignatureOffset(it)
-        val cdso = findCentralDirectoryStartOffset(it, apkEOCDSignOffset)
-        val (signBlockOffset, signBlockSize) = getSignBlockOffsetAndSize(it, cdso)
-        val signBlockValues = readSignBlockValues(it, signBlockOffset, signBlockSize)
-        println("signBlockValues ===> $signBlockValues")
-    }
-}
 
 
 /**
- * find end of central directory signature
- * signature = 0x06054b50
+ * 获取central directory start offset的偏移量，
+ * central directory start offset之前紧接着就是
+ * 前面模块SignBlock
  */
-fun findApkEOCDSignatureOffset(channel: FileChannel): Long {
-    val tempBuffer = ByteBuffer.allocate(END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE)
-    val fileSize = channel.size()
-    if (!checkApkFileSize()) throw IOException("invalid apk size $fileSize")
-    //从后向前找 EOCD Signature
-    for (i in fileSize - END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE downTo 0) {
-        channel.read(tempBuffer, i)
-        tempBuffer.order(ByteOrder.LITTLE_ENDIAN)
-        if (tempBuffer.getInt(0) == END_OF_CENTRAL_DIRECTORY_SIGNATURE) {
-            println("find ecod signature success, position=$i")
-            return i
-        }
-        tempBuffer.clear()
-    }
-    throw IOException("can not find apk end of central directory signature")
-}
-
-//todo
-// 1.find comments
-// 2.find central directory start offset
-
-fun findCentralDirectoryStartOffset(channel: FileChannel, eocdOffset: Long): Long {
+internal fun findCentralDirectoryStartOffset(channel: FileChannel, eocdOffset: Long): Long {
 
     // End of central directory record (EOCD)
     // Offset    Bytes     Description[23]
@@ -69,13 +31,7 @@ fun findCentralDirectoryStartOffset(channel: FileChannel, eocdOffset: Long): Lon
     // 16          4       Offset of start of central directory, relative to start of archive
     // 20          2       Comment length (n)
     // 22          n       Comment
-    val cdsoOffset = eocdOffset +
-            END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE +
-            NUMBER_OF_THIS_DISK_BYTE_SIZE +
-            DISK_WHERE_CENTRAL_DIRECTORY_STARTS_BYTE_SIZE +
-            NUMBER_OF_CENTRAL_DIRECTORY_RECORDS_BYTE_SIZE +
-            TOTAL_NUMBER_OF_CENTRAL_DIRECTORY_RECORDS_BYTE_SIZE +
-            SIZE_OF_CENTRAL_DIRECTORY_BYTE_SIZE
+    val cdsoOffset = calculateCentralDirectoryOffset(eocdOffset)
 
     channel.position(cdsoOffset)
     val tempBuffer = allocateBuffer(OFFSET_OF_START_OF_CENTRAL_DIRECTORY_BYTE_SIZE)
@@ -88,20 +44,22 @@ fun findCentralDirectoryStartOffset(channel: FileChannel, eocdOffset: Long): Lon
     return cdso.toLong()
 }
 
-
-fun getSignBlockOffsetAndSize(channel: FileChannel, centralDirectoryStartOffset: Long): Pair<Long, Long> {
+/**
+ * 获取SignBlock的偏移地址和长度
+ */
+internal fun getSignBlockOffsetAndSize(apkChannel: FileChannel, centralDirectoryStartOffset: Long): Pair<Long, Long> {
 
     // OFFSET       DATA TYPE  DESCRIPTION
     // @+0  bytes uint64:    size in bytes (excluding this field)
     // @+8  bytes payload
     // @-24 bytes uint64:    size in bytes (same as the one above)
     // @-16 bytes uint128:   magic
-    channel.position(centralDirectoryStartOffset.toLong() -
+    apkChannel.position(centralDirectoryStartOffset.toLong() -
             APK_SIGN_BLOCK_SIZE_BYTE_SIZE -
             APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
 
     val tempBuffer = allocateBuffer(APK_SIGN_BLOCK_SIZE_BYTE_SIZE + APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
-    channel.read(tempBuffer)
+    apkChannel.read(tempBuffer)
     val signBlockMagicLow = tempBuffer.getLong(APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE)
     val signBlockMagicHigh = tempBuffer.getLong(APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
     if (signBlockMagicLow == APK_SIGN_BLOCK_MAGIC_LOW &&
@@ -123,12 +81,59 @@ fun getSignBlockOffsetAndSize(channel: FileChannel, centralDirectoryStartOffset:
 }
 
 
-fun findApk(): File = File("${System.getProperty("user.dir")}${File.separator}tmpNierDebug.apk")
-
-fun checkApkFileSize(): Boolean = true
-
-fun allocateBuffer(size: Int): ByteBuffer {
-    val buffer = ByteBuffer.allocate(size)
-    return buffer.order(ByteOrder.LITTLE_ENDIAN)
+/**
+ *
+ * 获取ZIP的 end of central directory signature，该字段靠后一般从后往前获取
+ * signature = 0x06054b50
+ */
+internal fun findApkEOCDSignatureOffset(apkFileChannel: FileChannel): Long {
+    val tempBuffer = ByteBuffer.allocate(END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE)
+    val fileSize = apkFileChannel.size()
+    if (!checkApkFileSize()) throw IOException("invalid apk size $fileSize")
+    //从后向前找 EOCD Signature
+    for (i in fileSize - END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE downTo 0) {
+        apkFileChannel.read(tempBuffer, i)
+        tempBuffer.order(ByteOrder.LITTLE_ENDIAN)
+        if (tempBuffer.getInt(0) == END_OF_CENTRAL_DIRECTORY_SIGNATURE) {
+            println("find ecod signature success, position=$i")
+            return i
+        }
+        tempBuffer.clear()
+    }
+    throw IOException("can not find apk end of central directory signature")
 }
 
+internal fun verifyApk(apkFile: File): Boolean {
+    if (!apkFile.exists()) {
+        println("apkFile no exit.")
+        return false
+    }
+    val apkVerifier = ApkVerifier.Builder(apkFile).build()
+
+    return try {
+        val result = apkVerifier.verify()
+        result.isVerified &&
+                result.isVerifiedUsingV1Scheme &&
+                result.isVerifiedUsingV2Scheme
+    } catch (e: Exception) {
+        e.printStackTrace()
+        println("verifyApk on error. errorMessage -> ${e.message}")
+        false
+    }
+
+}
+
+/**
+ * 检查 apk尺寸等是否有效（待完善）
+ */
+internal fun checkApkFileSize(): Boolean = true
+
+internal fun calculateCentralDirectoryOffset(endOfCentralDirectoryOffset: Long): Long {
+    return endOfCentralDirectoryOffset +
+            END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE +
+            NUMBER_OF_THIS_DISK_BYTE_SIZE +
+            DISK_WHERE_CENTRAL_DIRECTORY_STARTS_BYTE_SIZE +
+            NUMBER_OF_CENTRAL_DIRECTORY_RECORDS_BYTE_SIZE +
+            TOTAL_NUMBER_OF_CENTRAL_DIRECTORY_RECORDS_BYTE_SIZE +
+            SIZE_OF_CENTRAL_DIRECTORY_BYTE_SIZE
+}

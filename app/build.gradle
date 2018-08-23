@@ -18,6 +18,14 @@ buildscript {
 
 }
 
+android {
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+}
+
+
 packer {
     id = 100000024
     param = "Empty Param"
@@ -73,7 +81,9 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-//    implementation project(":injector")
+    implementation 'com.google.guava:guava:25.0-android'
+
+    implementation project(":injector")
     api "org.jetbrains.anko:anko-common:$anko_version"
 }
 

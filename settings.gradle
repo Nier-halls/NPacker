@@ -1,1 +1,1 @@
-include ':app', ':packer'
+include ':app', ':packer',':injector'
