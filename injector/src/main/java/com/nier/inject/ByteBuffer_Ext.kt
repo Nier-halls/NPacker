@@ -49,3 +49,17 @@ fun allocateBuffer(size: Int): ByteBuffer {
     val buffer = ByteBuffer.allocate(size)
     return buffer.order(ByteOrder.LITTLE_ENDIAN)
 }
+
+fun allocateBuffer(size: Int, init: ByteBuffer.(ByteBuffer) -> ByteBuffer): ByteBuffer {
+    val buffer = ByteBuffer.allocate(size)
+    buffer.order(ByteOrder.LITTLE_ENDIAN)
+    return init(buffer, buffer)
+}
+
+fun ByteBuffer.finish(): ByteBuffer {
+    return this.flip() as ByteBuffer
+}
+
+fun ByteBuffer.recycle() {
+    //todo ByteBuffer对象的回收
+}

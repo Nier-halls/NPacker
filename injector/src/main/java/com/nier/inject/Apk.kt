@@ -8,7 +8,7 @@ import java.nio.channels.FileChannel
  * Created by Nier
  * Date 2018/8/20
  */
-class Apk private constructor(var sourceDir: File) {
+class Apk private constructor(var source: File) {
 
     internal interface IChannelAction {
         fun action(fileChannel: FileChannel)
@@ -17,26 +17,22 @@ class Apk private constructor(var sourceDir: File) {
     internal var mCentralDirectoryStartOffset: Long = -1
     internal var mSignBlockOffset: Long = -1
     internal var mSignBlockSize: Long = -1
-    internal var mExtraPayloadHandler: IExtraPayloadHandler = ExtraPayloadHandlerTest()
+    internal lateinit var mExtraPayloadProtocol: IExtraPayloadHandler
 
     companion object {
-        fun createApk(sourceDir: File): Apk {
+        fun createApk(sourceDir: File, extraPayloadHandler: IExtraPayloadHandler = ExtraPayloadHandlerTest()): Apk {
             if (!sourceDir.exists()) println("apk not found.")
-            // todo check apk file valid
-            return Apk(sourceDir).init()
-        }
-
-        fun createApk(sourceDir: File, extraPayloadHander: IExtraPayloadHandler): Apk {
-            if (!sourceDir.exists()) println("apk not found.")
-            // todo check apk file valid
-            val apk = Apk(sourceDir)
-            apk.mExtraPayloadHandler = extraPayloadHander
-            apk.init()
-            return apk
+            return Apk(sourceDir).apply {
+                if (!verifyApk(source)) {
+                    throw IllegalArgumentException("invalid apk, it's path = ${source.path}")
+                }
+                mExtraPayloadProtocol = extraPayloadHandler
+                init()
+            }
         }
     }
 
-    fun invalid(): Boolean {
+    internal fun invalid(): Boolean {
         return mCentralDirectoryStartOffset < 0 ||
                 mSignBlockOffset < 0 ||
                 mSignBlockSize < 0
@@ -44,8 +40,8 @@ class Apk private constructor(var sourceDir: File) {
 
     private fun init(): Apk {
         channel {
-            mCentralDirectoryStartOffset = findCentralDirectoryStartOffset(it, findApkEOCDSignatureOffset(it))
-            val (signBlockOffset, signBlockSize) = getSignBlockOffsetAndSize(it, mCentralDirectoryStartOffset)
+            mCentralDirectoryStartOffset = findCentralDirectoryStartOffset(this, findApkEOCDSignatureOffset(this))
+            val (signBlockOffset, signBlockSize) = getSignBlockOffsetAndSize(this, mCentralDirectoryStartOffset)
             mSignBlockOffset = signBlockOffset
             mSignBlockSize = signBlockSize
         }
@@ -55,18 +51,20 @@ class Apk private constructor(var sourceDir: File) {
     /**
      * 方便回收资源
      */
-    inline fun channel(action: (FileChannel) -> Unit) {
-        RandomAccessFile(sourceDir, "rw").use {
+    internal inline fun channel(action: FileChannel.(FileChannel) -> Unit) {
+        RandomAccessFile(source, "rw").use {
             it.channel.use {
-                action(it)
+                action(it, it)
             }
         }
     }
 
-    fun getExtraData(){
-        getPayloadById(this,)
-
-
+    fun getExtraData(): ByteArray? {
+        val extra = getPayloadById(this, DEFAULT_EXTRA_PAYLOAD_KEY)
+        extra?.let {
+            return mExtraPayloadProtocol.parse(extra)
+        }
+        return null
     }
 }
 

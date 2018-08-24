@@ -9,7 +9,7 @@ import java.nio.ByteBuffer
 
 interface IExtraPayloadHandler {
 
-    fun wrap(payload: IExtraPayload): ByteBuffer
+    fun wrap(payloadEntry: IExtraPayload): ByteBuffer
 
     fun parse(rawPayload: ByteBuffer): ByteArray
 }

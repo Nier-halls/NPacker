@@ -10,8 +10,7 @@ import java.nio.ByteBuffer
 
 
 internal fun getPayloadById(apk: Apk, id: Int): ByteBuffer? {
-    val allPayloads = readPayload(apk)
-    return allPayloads[id]
+    return readPayload(apk)[id]
 }
 
 /**
@@ -21,12 +20,12 @@ private fun readPayload(apk: Apk): HashMap<Int, ByteBuffer> {
     if (apk.invalid()) {
         throw IllegalArgumentException("apk not init, do you forget invoke init()")
     }
-    apk.channel { apkChannel ->
+    apk.channel {
         //从apk的SignBlock的数据段中读取
         println("signBlockOffset = ${apk.mSignBlockOffset}, signBlockSize = ${apk.mSignBlockSize.toInt()}")
-        apkChannel.position(apk.mSignBlockOffset + APK_SIGN_BLOCK_SIZE_BYTE_SIZE)
+        position(apk.mSignBlockOffset + APK_SIGN_BLOCK_SIZE_BYTE_SIZE)
         val payloadBuffer = allocateBuffer(apk.mSignBlockSize.toInt() - SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE - APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
-        apkChannel.read(payloadBuffer)
+        read(payloadBuffer)
         payloadBuffer.position(0)
         return readValues(payloadBuffer, HashMap())
     }
@@ -67,87 +66,107 @@ internal fun addPayload(apk: Apk, payload: IExtraPayload) {
         throw IOException("Miss sign v2 block.")
     }
     //构造新的payload数据集并且写入到apk中
-    val payloadDataContent = apk.mExtraPayloadHandler.wrap(payload)
+    val payloadDataContent = apk.mExtraPayloadProtocol.wrap(payload)
     payloads[payload.key()] = payloadDataContent
     writeValues(apk, payloads)
 
-    println("apk is valid = ${verifyApk(apk.sourceDir)}")
+    println("apk is valid = ${verifyApk(apk.source)}")
 }
 
 /**
  * 根据apk的SignBlock协议写入到apk中
  */
 private fun writeValues(apk: Apk, payloads: HashMap<Int, ByteBuffer>) {
-    apk.channel { channel ->
-        println("Before write extra value, apk size = ${channel.size()}")
-        //cache sourceTailBlock
-        //sourceTailBlock = CentralDirectory + EndOfCentralDirectory
-        val sourceRemainAfterSignBlockSize = (channel.size() - apk.mCentralDirectoryStartOffset).toInt()
-        val sourceRemainAfterSignBlock = allocateBuffer(sourceRemainAfterSignBlockSize)
-        channel.position(apk.mCentralDirectoryStartOffset)
-        channel.read(sourceRemainAfterSignBlock)
-        sourceRemainAfterSignBlock.flip()
+    apk.channel {
+        val outer = this
+        println("Before write extra value, apk size = ${size()}")
+
+        //在数据写入改变前将原始的CentralDirectory后面的数据保存起来等待最后写入
+        val sourceRemainAfterSignBlock = allocateBuffer((size() - apk.mCentralDirectoryStartOffset).toInt()) {
+            position(apk.mCentralDirectoryStartOffset)
+            outer.read(this)
+            finish()
+        }
 
         //跳过开始8子节用于记录SignBlock大小的字段，先进行Payload的写入
-        channel.position(apk.mSignBlockOffset + APK_SIGN_BLOCK_SIZE_BYTE_SIZE) //跳过size
+        position(apk.mSignBlockOffset + APK_SIGN_BLOCK_SIZE_BYTE_SIZE) //跳过size
         var signBlockLength: Long = 0
         //一次写入新的payload到SignBlock中
-        payloads.entries.forEach {
-            println("payload value limit = ${it.value.limit()}")
-            val payloadLength = it.value.limit() + SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE
-            val lengthBuffer = allocateBuffer(SIGN_BLOCK_PAYLOAD_VALUE_LENGTH_BYTE_SIZE).putLong(payloadLength.toLong())
-            lengthBuffer.flip()
-            val keyBuffer = allocateBuffer(SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE).putInt(it.key)
-            keyBuffer.flip()
+        payloads.entries.forEach { payloadEntry ->
+            println("payload value limit = ${payloadEntry.value.limit()}")
+            //写入Payload Entry 数据长度
+            val payloadLength = payloadEntry.value.limit() + SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE
 
-            channel.write(lengthBuffer)
-            channel.write(keyBuffer)
-            channel.write(it.value)
+            write {
+                allocateBuffer(SIGN_BLOCK_PAYLOAD_VALUE_LENGTH_BYTE_SIZE).apply {
+                    putLong(payloadLength.toLong())
+                    finish()
+                }
+            }
+            //写入int型的Key值
+            write {
+                allocateBuffer(SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE).apply {
+                    putInt(payloadEntry.key)
+                    finish()
+                }
+            }
+            //写入Payload数据体
+            write { payloadEntry.value }
+            //计算数据长度
             signBlockLength += SIGN_BLOCK_PAYLOAD_VALUE_LENGTH_BYTE_SIZE + payloadLength
         }
-        println("after write payload channel position = ${channel.position()}")
         //不包括开头的size，因此这里只加上1个size的长度8
         signBlockLength += APK_SIGN_BLOCK_SIZE_BYTE_SIZE
         signBlockLength += APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2
 
         //写入末尾的SignBock长度字段
-        val signBlockSizeBuffer = allocateBuffer(APK_SIGN_BLOCK_SIZE_BYTE_SIZE)
-        signBlockSizeBuffer.putLong(signBlockLength)
-        signBlockSizeBuffer.flip()
-        channel.write(signBlockSizeBuffer)
+        write {
+            allocateBuffer(APK_SIGN_BLOCK_SIZE_BYTE_SIZE) {
+                putLong(signBlockLength)
+                finish()
+            }
+        }
 
         //写入低8位魔数
-        var signBlockMagicNumBuffer = allocateBuffer(APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE)
-        signBlockMagicNumBuffer.putLong(APK_SIGN_BLOCK_MAGIC_LOW)
-        signBlockMagicNumBuffer.flip()
-        channel.write(signBlockMagicNumBuffer)
+        write {
+            allocateBuffer(APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE) {
+                putLong(APK_SIGN_BLOCK_MAGIC_LOW)
+                finish()
+            }
+        }
 
         //写入高8位魔数
-        signBlockMagicNumBuffer = allocateBuffer(APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE)
-        signBlockMagicNumBuffer.putLong(APK_SIGN_BLOCK_MAGIC_HIGH)
-        signBlockMagicNumBuffer.flip()
-        channel.write(signBlockMagicNumBuffer)
+        write {
+            allocateBuffer(APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE).apply {
+                putLong(APK_SIGN_BLOCK_MAGIC_HIGH)
+                finish()
+            }
+        }
 
         //记录新Central directory start offset，稍后需要更新到End of central directory中
-        val newCentralDirectoryStartOffset = channel.position()
+        val newCentralDirectoryStartOffset = position()
 
         //写入头部的SignBock长度字段
-        signBlockSizeBuffer.clear()
-        signBlockSizeBuffer.putLong(signBlockLength)
-        signBlockSizeBuffer.flip()
-        channel.position(apk.mSignBlockOffset)
-        channel.write(signBlockSizeBuffer)
+        position(apk.mSignBlockOffset)
+
+        write {
+            allocateBuffer(APK_SIGN_BLOCK_SIZE_BYTE_SIZE).apply {
+                putLong(signBlockLength)
+                finish()
+            }
+        }
 
         //将CentralDirectory直至结尾的数据写入到apk中
-        channel.position(newCentralDirectoryStartOffset)
-        channel.write(sourceRemainAfterSignBlock)
-
-        //更新End of central directory中记录Central directory start offset的数据段
-        val newEOCDSignature = findApkEOCDSignatureOffset(channel)
-        val newCDSOBuffer = allocateBuffer(4)
-        newCDSOBuffer.putInt(newCentralDirectoryStartOffset.toInt())
-        newCDSOBuffer.flip()
-        channel.position(calculateCentralDirectoryOffset(newEOCDSignature))
-        channel.write(newCDSOBuffer)
+        position(newCentralDirectoryStartOffset)
+        write { sourceRemainAfterSignBlock }
+        write {
+            //更新End of central directory中记录Central directory start offset的数据段
+            val newEOCDSignature = findApkEOCDSignatureOffset(outer)
+            position(calculateCentralDirectoryOffset(newEOCDSignature))
+            allocateBuffer(OFFSET_OF_START_OF_CENTRAL_DIRECTORY_BYTE_SIZE) {
+                putInt(newCentralDirectoryStartOffset.toInt())
+                finish()
+            }
+        }
     }
 }

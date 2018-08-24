@@ -40,14 +40,14 @@ open class PackerPlugin : Plugin<Project> {
 fun generateTaskAndBuildDepends(project: Project, variant: BaseVariant) {
     val customExtension = project.extensions["packer"] as? PackerExtension
     //create packTask
-    val packTask = project.task("${PACK_TASK_PREFIX}${variant.name.capitalize()}", InjectTask::class) {
+    val packTask = project.task("$PACK_TASK_PREFIX${variant.name.capitalize()}", InjectTask::class) {
         println("create task -> ${this.name}")
         this.dependsOn.add(variant.assemble)
         this.packerExtension = customExtension
         this.sourceVariant = variant
     }
     //create buildTypeTask
-    val buildTypeName = "${PACK_TASK_PREFIX}${variant.buildType.name.capitalize()}"
+    val buildTypeName = "$PACK_TASK_PREFIX${variant.buildType.name.capitalize()}"
     val typeTask = project.tasks.findByName(buildTypeName)
             ?: generateTypeTask(project, buildTypeName)
     //buildTypeTask dependsOn packTask

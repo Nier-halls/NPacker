@@ -23,14 +23,13 @@ internal class ExtraPayloadHandler : IExtraPayloadHandler {
         val magicHeader = APK_EXTRA_MAGIC.toByteArray(Charsets.UTF_8)
         val contentLength = rawContent.size
         val payloadKey = payloadEntry.key()
-        val blockSize = magicHeader.size + 4 + 4 + contentLength
-        val buffer = allocateBuffer(rawContent.size)
-        buffer.put(magicHeader)
-        buffer.putInt(payloadKey)
-        buffer.putInt(contentLength)
-        buffer.put(rawContent)
-        buffer.flip()
-        return buffer
+        return allocateBuffer(rawContent.size).apply {
+            put(magicHeader)//魔数
+            putInt(payloadKey)//extraData对应Payload的key（payload的key）
+            putInt(contentLength)//extraData数据的长度
+            put(rawContent)//extraData数据
+            flip()
+        }
     }
 
     override fun parse(rawPayload: ByteBuffer): ByteArray {
