@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
 
-        <meta-payload
+        <meta-data
             android:name="TEST"
             android:value="My MetaData 123." />
 

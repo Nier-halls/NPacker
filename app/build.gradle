@@ -83,7 +83,8 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     implementation 'com.google.guava:guava:25.0-android'
 
-    implementation project(":injector")
+    implementation project(":packer")
+//    implementation project(":injector")
     api "org.jetbrains.anko:anko-common:$anko_version"
 }
 

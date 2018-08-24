@@ -7,6 +7,7 @@ plugins {
     `java-gradle-plugin`
     `kotlin-dsl`
     `groovy`
+    `java-library`
     `maven-publish`
 }
 
@@ -106,17 +107,18 @@ java.sourceSets
 
 
 dependencies {
-    compile("com.android.tools.build:gradle:3.1.3")
-    compile("com.android.tools.build:apksig:3.1.3")
+    implementation ("com.android.tools.build:gradle:3.1.3")
+    implementation ("com.android.tools.build:apksig:3.1.3")
 //    compile "org.jetbrains.kotlin:kotlin-native-gradle-plugin:0.6.2"
     //    kotlin 标准库
 //    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 //    kotlin 反射库
 //    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 //    implementation(kotlin("stdlib", "1.2.31"))
+    api (project(":injector"))
     compile(localGroovy())
     compile(gradleApi())
-    compile(kotlin("stdlib", kotlin_version))
+    implementation (kotlin("stdlib", kotlin_version))
 }
 
 publishing {

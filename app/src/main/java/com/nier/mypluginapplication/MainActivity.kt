@@ -6,7 +6,6 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.content.pm.ApplicationInfo
 import com.nier.inject.Apk
-import com.nier.inject.readPayloadById
 import java.io.File
 import java.nio.ByteBuffer
 
@@ -39,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         for (app in apps) {
             if (app.packageName.startsWith("com.nier.mypluginapplication")) {
                 val apk = Apk.createApk(File(app.sourceDir))
-              Log.d("fgd","extrad data = ${read(readPayloadById(apk, 1541))}")
+              Log.d("fgd","extrad data = ${apk.getExtraData()}")
 
 //                Log.d("TAG", "app=" + app.packageName + ", channel="
 //                        + read())

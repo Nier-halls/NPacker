@@ -59,12 +59,16 @@ class Apk private constructor(var source: File) {
         }
     }
 
-    fun getExtraData(): ByteArray? {
-        val extra = getPayloadById(this, DEFAULT_EXTRA_PAYLOAD_KEY)
+    fun getExtraData(key:Int = DEFAULT_EXTRA_PAYLOAD_KEY): ByteArray? {
+        val extra = getPayloadById(this, key)
         extra?.let {
             return mExtraPayloadProtocol.parse(extra)
         }
         return null
+    }
+
+    fun injectExtraData(data: IExtraPayload) {
+        addPayload(this, data)
     }
 }
 
