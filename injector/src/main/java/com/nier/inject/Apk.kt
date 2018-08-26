@@ -23,9 +23,6 @@ class Apk private constructor(var source: File) {
         fun createApk(sourceDir: File, extraPayloadHandler: IExtraPayloadHandler = ExtraPayloadHandlerTest()): Apk {
             if (!sourceDir.exists()) println("apk not found.")
             return Apk(sourceDir).apply {
-                if (!verifyApk(source)) {
-                    throw IllegalArgumentException("invalid apk, it's path = ${source.path}")
-                }
                 mExtraPayloadProtocol = extraPayloadHandler
                 init()
             }
@@ -39,7 +36,7 @@ class Apk private constructor(var source: File) {
     }
 
     private fun init(): Apk {
-        channel {
+        readOnlyChannel {
             mCentralDirectoryStartOffset = findCentralDirectoryStartOffset(this, findApkEOCDSignatureOffset(this))
             val (signBlockOffset, signBlockSize) = getSignBlockOffsetAndSize(this, mCentralDirectoryStartOffset)
             mSignBlockOffset = signBlockOffset
@@ -52,8 +49,19 @@ class Apk private constructor(var source: File) {
      * 方便回收资源
      */
     internal inline fun channel(action: FileChannel.(FileChannel) -> Unit) {
-        RandomAccessFile(source, "rw").use {
-            it.channel.use {
+        RandomAccessFile(source, "rw").use { randomAccessFile ->
+            randomAccessFile.channel.use {
+                action(it, it)
+            }
+        }
+    }
+
+    /**
+     * 方便回收资源
+     */
+    internal inline fun readOnlyChannel(action: FileChannel.(FileChannel) -> Unit) {
+        RandomAccessFile(source, "r").use { randomAccessFile ->
+            randomAccessFile.channel.use {
                 action(it, it)
             }
         }

@@ -33,11 +33,14 @@ buildscript {
     }
 }
 
-repositories {
-    mavenCentral()
-    jcenter()
-    google()
-}
+//repositories {
+//    mavenCentral()
+//    jcenter()
+//    google()
+//    maven {
+//        url = uri("../publish")
+//    }
+//}
 
 
 //val sourceSets = java.sourceSets
@@ -109,13 +112,14 @@ java.sourceSets
 dependencies {
     implementation ("com.android.tools.build:gradle:3.1.3")
     implementation ("com.android.tools.build:apksig:3.1.3")
+    implementation ("com.nier.injector:injector-library:1.0")
 //    compile "org.jetbrains.kotlin:kotlin-native-gradle-plugin:0.6.2"
     //    kotlin 标准库
 //    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 //    kotlin 反射库
 //    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 //    implementation(kotlin("stdlib", "1.2.31"))
-    api (project(":injector"))
+//    api (project(":injector"))
     compile(localGroovy())
     compile(gradleApi())
     implementation (kotlin("stdlib", kotlin_version))

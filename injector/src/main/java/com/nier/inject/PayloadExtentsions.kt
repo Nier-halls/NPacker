@@ -20,7 +20,7 @@ private fun readPayload(apk: Apk): HashMap<Int, ByteBuffer> {
     if (apk.invalid()) {
         throw IllegalArgumentException("apk not init, do you forget invoke init()")
     }
-    apk.channel {
+    apk.readOnlyChannel {
         //从apk的SignBlock的数据段中读取
         println("signBlockOffset = ${apk.mSignBlockOffset}, signBlockSize = ${apk.mSignBlockSize.toInt()}")
         position(apk.mSignBlockOffset + APK_SIGN_BLOCK_SIZE_BYTE_SIZE)
@@ -56,7 +56,7 @@ private fun readValues(signBlock: ByteBuffer, values: HashMap<Int, ByteBuffer>):
  * 添加一个追加信息到SignBlock的payload中
  */
 internal fun addPayload(apk: Apk, payload: IExtraPayload) {
-    if (apk.invalid()) {
+    if (apk.invalid() && verifyApk(apk.source)) {
         throw IllegalArgumentException("apk not init, do you forget invoke init()")
     }
     //先将旧的数据读取出来
@@ -69,8 +69,6 @@ internal fun addPayload(apk: Apk, payload: IExtraPayload) {
     val payloadDataContent = apk.mExtraPayloadProtocol.wrap(payload)
     payloads[payload.key()] = payloadDataContent
     writeValues(apk, payloads)
-
-    println("apk is valid = ${verifyApk(apk.source)}")
 }
 
 /**

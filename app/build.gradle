@@ -18,6 +18,14 @@ buildscript {
 
 }
 
+repositories {
+    maven {
+        url uri('../publish')
+    }
+    google()
+    jcenter()
+}
+
 android {
     compileOptions {
         sourceCompatibility 1.8
@@ -38,7 +46,7 @@ android {
     defaultConfig {
         applicationId "com.nier.mypluginapplication"
         minSdkVersion 15
-        targetSdkVersion 27
+        targetSdkVersion 21
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -77,13 +85,13 @@ repositories {
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation fileTree(include: ["*.jar"], dir: "libs")
+    implementation "com.android.support:appcompat-v7:27.1.1"
+    implementation "com.android.support.constraint:constraint-layout:1.1.2"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-    implementation 'com.google.guava:guava:25.0-android'
-
-    implementation project(":packer")
+    implementation "com.google.guava:guava:25.0-android"
+    implementation "com.nier.injector:injector-library:1.0"
+//    implementation project(":packer")
 //    implementation project(":injector")
     api "org.jetbrains.anko:anko-common:$anko_version"
 }

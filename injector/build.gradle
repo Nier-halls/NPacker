@@ -1,8 +1,8 @@
-//apply plugin: 'java'
-apply plugin: 'java-library'
+apply plugin: 'java'
+//apply plugin: 'java-library'
 apply plugin: 'kotlin'
 //apply plugin: 'application'
-//apply plugin: 'maven-publish'
+apply plugin: 'maven-publish'
 
 buildscript {
     ext.kotlin_version = '1.1.4-3'
@@ -35,10 +35,10 @@ repositories {
 //    projectPath = project.rootDir
 //}
 
-//sourceSets {
-//    main.java.srcDirs += "src/main/java"
-//    main.kotlin.srcDirs += "src/main/kotlin"
-//}
+sourceSets {
+    main.java.srcDirs += "src/main/java"
+    main.kotlin.srcDirs += "src/main/kotlin"
+}
 
 task customClean(type: Delete) {
     delete "${project.projectDir}${File.separator}tmpNierDebug.apk"
@@ -62,21 +62,21 @@ task javadocJar(type: Jar) {
 
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-    compile "com.android.tools.build:apksig:3.1.3"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    implementation "com.android.tools.build:apksig:3.1.4"
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
-//publishing {
-//    publications {
-//        mavenJava(MavenPublication) {
-//            artifactId = 'injector-library'
-//            from components.java
-//            artifact sourcesJar
-//            artifact javadocJar
-//        }
-//    }
-//    repositories {
-//        maven { url = uri("../publish") }
-//    }
-//}
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'injector-library'
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+    repositories {
+        maven { url = uri("../publish") }
+    }
+}
