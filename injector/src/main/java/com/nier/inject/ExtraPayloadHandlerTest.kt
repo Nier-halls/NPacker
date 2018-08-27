@@ -24,7 +24,7 @@ internal class ExtraPayloadHandlerTest : IExtraPayloadHandler {
         return buffer
     }
 
-    override fun parse(rawPayload: ByteBuffer): ByteArray {
+    override fun parse(rawPayload: ByteBuffer, payloaKey: Int): ByteArray {
         val len = rawPayload.limit()
         val byte: ByteArray = ByteArray(len)
         rawPayload.get(byte)

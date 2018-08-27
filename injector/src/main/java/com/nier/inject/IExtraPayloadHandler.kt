@@ -15,6 +15,7 @@ interface IExtraPayloadHandler {
 
     /**
      * 解析从payload中获取的数据
+     * payloadKey用来检测用
      */
-    fun parse(rawPayload: ByteBuffer): ByteArray
+    fun parse(rawPayload: ByteBuffer,payloadKey:Int): ByteArray?
 }

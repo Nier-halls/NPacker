@@ -14,8 +14,6 @@ import java.io.File
 import java.nio.ByteBuffer
 
 
-
-
 /**
  * Created by Nier
  * Date 2018/7/19
@@ -53,13 +51,15 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
     fun test() {
         val pm = packageManager
         val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
         for (app in apps) {
             if (app.packageName.startsWith("com.nier.mypluginapplication")) {
                 val apk = Apk.createApk(File(app.sourceDir))
-              Log.d("fgd","extrad data = ${apk.getExtraData()}")
+                Log.d("fgd", "app version = ${BuildConfig.VERSION_NAME}_${BuildConfig.VERSION_CODE}extrad data = ${String(apk.getExtraData()
+                        ?: "Null".toByteArray())}")
 
 
 //                RandomAccessFile(File(app.sourceDir), "r").use {
@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
                     PERMISSIONS_STORAGE,
                     REQUEST_EXTERNAL_STORAGE
             )
-        }else{
+        } else {
             test()
         }
     }

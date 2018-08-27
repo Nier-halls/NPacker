@@ -12,11 +12,3 @@ fun FileChannel.write(block: (Unit) -> ByteBuffer) {
     write(byteBuffer)
     byteBuffer.recycle()
 }
-
-fun FileChannel.write(vararg blocks: (Unit) -> ByteBuffer) {
-    blocks.forEach {
-        val byteBuffer = it(Unit)
-        write(byteBuffer)
-        byteBuffer.recycle()
-    }
-}

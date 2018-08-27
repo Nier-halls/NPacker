@@ -41,7 +41,8 @@ sourceSets {
 }
 
 task customClean(type: Delete) {
-    delete "${project.projectDir}${File.separator}tmpNierDebug.apk"
+    delete "${project.projectDir}${File.separator}tmpNierDebug.apk",
+            "${project.projectDir}${File.separator}tmpFgdRelease.apk"
 }
 
 clean.dependsOn(customClean)

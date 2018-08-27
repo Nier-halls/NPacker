@@ -20,7 +20,7 @@ class Apk private constructor(var source: File) {
     internal lateinit var mExtraPayloadProtocol: IExtraPayloadHandler
 
     companion object {
-        fun createApk(sourceDir: File, extraPayloadHandler: IExtraPayloadHandler = ExtraPayloadHandlerTest()): Apk {
+        fun createApk(sourceDir: File, extraPayloadHandler: IExtraPayloadHandler = ExtraPayloadHandler()): Apk {
             if (!sourceDir.exists()) println("apk not found.")
             return Apk(sourceDir).apply {
                 mExtraPayloadProtocol = extraPayloadHandler
@@ -67,10 +67,10 @@ class Apk private constructor(var source: File) {
         }
     }
 
-    fun getExtraData(key:Int = DEFAULT_EXTRA_PAYLOAD_KEY): ByteArray? {
+    fun getExtraData(key: Int = DEFAULT_EXTRA_PAYLOAD_KEY): ByteArray? {
         val extra = getPayloadById(this, key)
         extra?.let {
-            return mExtraPayloadProtocol.parse(extra)
+            return mExtraPayloadProtocol.parse(extra, key)
         }
         return null
     }

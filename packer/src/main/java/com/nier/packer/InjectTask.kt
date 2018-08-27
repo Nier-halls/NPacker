@@ -45,7 +45,7 @@ open class InjectTask : DefaultTask() {
                 }
 
                 override fun flat(): ByteArray {
-                    return sourceVariant?.name?.toByteArray(Charsets.UTF_8)
+                    return "new version fgd hahahahahaha !@#$%^&*()_+${sourceVariant?.name}>>>${sourceVariant}".toByteArray(Charsets.UTF_8)
                             ?: throw IllegalArgumentException("Unknow extra payload data.")
                 }
             })
