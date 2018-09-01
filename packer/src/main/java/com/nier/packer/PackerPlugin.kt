@@ -43,7 +43,7 @@ fun generateTaskAndBuildDepends(project: Project, variant: BaseVariant) {
     val packTask = project.task("$PACK_TASK_PREFIX${variant.name.capitalize()}", InjectTask::class) {
         println("create task -> ${this.name}")
         this.dependsOn.add(variant.assemble)
-        this.packerExtension = customExtension
+//        this.packerExtension = customExtension
         this.sourceVariant = variant
     }
     //create buildTypeTask
