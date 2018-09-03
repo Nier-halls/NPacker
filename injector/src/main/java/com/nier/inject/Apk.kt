@@ -81,9 +81,10 @@ class Apk private constructor(var source: File) {
 }
 
 fun main(args: Array<String>) {
-    val target = File("F:\\AndroidProject\\GradlePlugin\\packer", "tmpFgdDebug.apk")
-    val source = File("F:\\AndroidProject\\GradlePlugin\\app\\build\\outputs\\apk\\fgd\\debug", "app-fgd-debug.apk")
+    val target = File("/Users/nier/Develop/Android/Project/GradlePlugin/packer", "tmpFgdDebug.apk")
+    val source = File("/Users/nier/Develop/Android/Project/GradlePlugin/app/build/outputs/apk/fgd/debug", "app-fgd-debug.apk")
     copyFile(source, target)
+    println("verify = ${verifyApk(target)}")
     Apk.createApk(target).injectExtraData(object : IExtraPayload {
         override fun key(): Int {
             return DEFAULT_EXTRA_PAYLOAD_KEY

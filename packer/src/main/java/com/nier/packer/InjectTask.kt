@@ -7,9 +7,6 @@ import com.android.build.gradle.api.BaseVariant
 import com.nier.inject.Apk
 import com.nier.inject.DEFAULT_EXTRA_PAYLOAD_KEY
 import com.nier.inject.IExtraPayload
-import groovy.text.SimpleTemplateEngine
-import groovy.text.Template
-import groovy.text.TemplateEngine
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import java.io.File
@@ -54,6 +51,7 @@ open class InjectTask : DefaultTask() {
             val copiedApk = File(getOutputDir(it.key), "tmp${sourceVariant.name?.capitalize()}.apk")
             if (verifyApk(sourceApk!!)) {
                 copyFile(sourceApk, copiedApk)
+                println("pre verify >>> ${verifyApk(copiedApk)}")
                 Apk.createApk(copiedApk).injectExtraData(object : IExtraPayload {
                     override fun key(): Int {
                         return DEFAULT_EXTRA_PAYLOAD_KEY
