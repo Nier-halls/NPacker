@@ -36,10 +36,31 @@ android {
     }
 }
 
-//packer {
-//    id = 100000024
-//    param = "Empty Param"
-//}
+packer {
+    apkOutputDir = "${rootDir}${File.separator}packer"
+    channels {
+        channel "shouchao": {
+            channelKey "12345551234"
+            field "field1", "value1"
+            field "field2", "value2"
+            field "field3", "value3"
+        }
+
+        channel "huawei": {
+            channelKey "2333333333333"
+            field "field11", "value11"
+            field "field12", "value21"
+            field "field13", "value13"
+        }
+//
+        channel "xiaomi": {
+            channelKey "ttttttttttttt"
+            field "ssss", "tttsss"
+            field "aaaa", "aaaa"
+            field "field3", "value3"
+        }
+    }
+}
 
 
 android {
@@ -91,7 +112,7 @@ dependencies {
     implementation "com.android.support.constraint:constraint-layout:1.1.2"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     implementation "com.google.guava:guava:25.0-android"
-//    implementation "com.nier.injector:injector-library:1.0"
+    implementation "com.nier.injector:injector-library:1.0"
 //    implementation project(":packer")
 //    implementation project(":injector")
     api "org.jetbrains.anko:anko-common:$anko_version"

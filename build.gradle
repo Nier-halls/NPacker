@@ -31,4 +31,23 @@ allprojects {
 task clean(type: Delete) {
     println("task clean start.")
     delete rootProject.buildDir
+    finalizedBy()
 }
+
+//taskClean.finalizedBy(rootProject.project(":packer").tasks.findByPath("publish"))
+
+task printTask() {
+    doLast {
+        println "printTask task !!! "
+        println rootProject.project(":packer")
+        rootProject.project(":packer").tasks.each { task ->
+            println "printTask task = ${task.getName()} "
+        }
+    }
+}
+
+//task publish(){}
+
+//task publish(type: rootProject.project(":packer").tasks.findByPath("publish").class) {
+////    "gradle :packer:publish".execute()
+//}
