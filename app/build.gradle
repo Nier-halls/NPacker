@@ -52,13 +52,6 @@ packer {
             field "field12", "value21"
             field "field13", "value13"
         }
-//
-        channel "xiaomi": {
-            channelKey "ttttttttttttt"
-            field "ssss", "tttsss"
-            field "aaaa", "aaaa"
-            field "field3", "value3"
-        }
     }
 }
 

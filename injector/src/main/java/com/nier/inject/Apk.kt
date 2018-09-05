@@ -81,20 +81,20 @@ class Apk private constructor(var source: File) {
 }
 
 fun main(args: Array<String>) {
-    val target = File("/Users/nier/Develop/Android/Project/GradlePlugin/packer", "tmpFgdDebug.apk")
-    val source = File("/Users/nier/Develop/Android/Project/GradlePlugin/app/build/outputs/apk/fgd/debug", "app-fgd-debug.apk")
-    copyFile(source, target)
+    val target = File("F:\\AndroidProject\\GradlePlugin\\packer", "tmpFgdDebug.apk")
+    val source = File("F:\\AndroidProject\\GradlePlugin\\app\\build\\outputs\\apk\\fgd\\debug", "app-fgd-debug.apk")
+    copyFileError(source, target)
     println("verify = ${verifyApk(target)}")
-    Apk.createApk(target).injectExtraData(object : IExtraPayload {
-        override fun key(): Int {
-            return DEFAULT_EXTRA_PAYLOAD_KEY
-        }
-
-        override fun flat(): ByteArray {
-            return "new version fgd hahahahahaha !@#$%^&*()_+ant".toByteArray(Charsets.UTF_8)
-                    ?: throw IllegalArgumentException("Unknow extra payload data.")
-        }
-    })
+//    Apk.createApk(target).injectExtraData(object : IExtraPayload {
+//        override fun key(): Int {
+//            return DEFAULT_EXTRA_PAYLOAD_KEY
+//        }
+//
+//        override fun flat(): ByteArray {
+//            return "new version fgd hahahahahaha !@#$%^&*()_+ant".toByteArray(Charsets.UTF_8)
+//                    ?: throw IllegalArgumentException("Unknow extra payload data.")
+//        }
+//    })
 }
 
 //fun main(args: Array<String>) {

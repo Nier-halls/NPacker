@@ -10,6 +10,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.Delete
 import org.gradle.kotlin.dsl.*
 import java.util.function.Consumer
 
@@ -30,6 +31,11 @@ open class PackerPlugin : Plugin<Project> {
             println(">>> channelContainer = ${customExtension?.channelContainer}")
 
             val appExtension = this.extensions["android"] as? AppExtension ?: return@Action
+
+            project.task("packerClean",Delete::class){
+                var fileTree = project.fileTree(customExtension?.apkOutputDir)
+            }
+
             appExtension.applicationVariants.forEach(Consumer { variant ->
                 generateTaskAndBuildDepends(project, variant)
             })

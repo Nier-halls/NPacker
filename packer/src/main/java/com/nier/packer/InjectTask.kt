@@ -48,7 +48,7 @@ open class InjectTask : DefaultTask() {
                     ?.outputFile
             println("output path >>> ${getOutputDir(it.key)}")
             println("build dir >>> ${project.rootProject.buildDir}")
-            val copiedApk = File(getOutputDir(it.key), "tmp${sourceVariant.name?.capitalize()}.apk")
+            val copiedApk = File(getOutputDir(it.key), "${it.key}${sourceVariant.name?.capitalize()}.apk")
             if (verifyApk(sourceApk!!)) {
                 copyFile(sourceApk, copiedApk)
                 println("pre verify >>> ${verifyApk(copiedApk)}")
@@ -58,7 +58,7 @@ open class InjectTask : DefaultTask() {
                     }
 
                     override fun flat(): ByteArray {
-                        return "new version fgd hahahahahaha !@#$%^&*()_+${sourceVariant.name}>>>${sourceVariant}".toByteArray(Charsets.UTF_8)
+                        return "channel = ${it.key}   source = ${sourceVariant.name}".toByteArray(Charsets.UTF_8)
                                 ?: throw IllegalArgumentException("Unknow extra payload data.")
                     }
                 })
