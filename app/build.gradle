@@ -47,7 +47,7 @@ packer {
             field "field3", "value3"
         }
 
-        channel "huawei": {
+        channel "huawei1": {
             channelKey "2333333333333"
             field "field1", "value11"
             field "field2", "value21"
@@ -109,7 +109,7 @@ dependencies {
     implementation "com.nier.packer:helper:1.0"
 //    implementation project(":packer")
 //    implementation project(":injector")
-    api "org.jetbrains.anko:anko-common:$anko_version"
+//    api "org.jetbrains.anko:anko-common:$anko_version"
 }
 
 //convention.getPlugin(com.nier.packer.PackerPluginConvention).apkName = "HaHa"
