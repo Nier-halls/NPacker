@@ -22,10 +22,6 @@ open class PackerPlugin : Plugin<Project> {
             //检查渠道信息配置，没有渠道信息就没有必要进行后续的多渠道打包了
             val customExtension = this.extensions["packer"] as? PackerExtension
                     ?: return@afterEvaluate
-            println(">>> apkOutputDir = ${customExtension.apkOutputDir}")
-            println(">>> apkNamePattern = ${customExtension.apkNamePattern}")
-            println(">>> mappingOutputDir = ${customExtension.mappingOutputDir}")
-            println(">>> channelContainer = ${customExtension.channelContainer}")
             //没有android组建说明配置有问题，不是android项目则不进行后续多渠道打包
             val appExtension = this.extensions["android"] as? AppExtension
                     ?: return@afterEvaluate
@@ -34,10 +30,12 @@ open class PackerPlugin : Plugin<Project> {
             appExtension.applicationVariants.forEach(Consumer { variant ->
                 generateTaskAndBuildDepends(project, customExtension, variant)
             })
-
-            project.task("packerClean", Delete::class) {
+            //配置clean task
+            val cleanTask = project.tasks.findByName("clean")
+                    ?: project.task("packerClean", Delete::class) {}
+            cleanTask.configure(closureOf<Any> {
                 delete(customExtension.getOutputDir(project))
-            }
+            })
         }
     }
 }
@@ -48,7 +46,6 @@ open class PackerPlugin : Plugin<Project> {
 private fun generateTaskAndBuildDepends(project: Project, extension: PackerExtension, variant: BaseVariant) {
     //create packTask
     val packTask = project.task("$PACK_TASK_PREFIX${variant.name.capitalize()}", InjectTask::class) {
-        println("create Sub task -> ${this.name}")
         this.dependsOn.add(variant.assemble)
         this.extension = extension
         this.sourceVariant = variant

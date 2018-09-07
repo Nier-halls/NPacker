@@ -21,3 +21,4 @@
 /gradle.properties
 *.properties
 .DS_Store
+/publish
