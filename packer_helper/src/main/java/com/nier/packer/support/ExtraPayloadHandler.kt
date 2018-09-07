@@ -1,5 +1,8 @@
-package com.nier.inject
+package com.nier.packer.support
 
+import com.nier.packer.APK_EXTRA_MAGIC
+import com.nier.packer.support.ext.allocateBuffer
+import com.nier.packer.support.ext.finish
 import java.nio.ByteBuffer
 
 /**
@@ -20,8 +23,8 @@ internal class ExtraPayloadHandler : IExtraPayloadHandler {
      *
      * 自定义协议防止别人篡改（渠道）数据
      */
-    override fun wrap(payloadEntry: IExtraPayload): ByteBuffer {
-        val rawContent = payloadEntry.flat()
+    override fun wrap(payloadEntry: IExtraPayloadData): ByteBuffer {
+        val rawContent = payloadEntry.toByteArray()
         val magicHeader = APK_EXTRA_MAGIC.toByteArray(Charsets.UTF_8)
         val payloadKey = payloadEntry.key()
         val contentLength = 4 + //size of length (head)

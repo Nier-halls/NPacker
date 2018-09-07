@@ -1,59 +1,75 @@
 package com.nier.packer
 
+import com.android.build.api.dsl.variant.ApplicationVariant
 import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.internal.api.ApplicationVariantImpl
+import com.nier.packer.channel.Channel
 import groovy.lang.Closure
+import groovy.text.SimpleTemplateEngine
 import org.gradle.api.Action
-import org.gradle.api.ActionConfiguration
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer
-import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate
-import org.gradle.internal.Actions
-import org.gradle.internal.metaobject.ConfigureDelegate
-import org.gradle.util.ConfigureUtil
+import org.gradle.api.Project
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * Created by Nier
  * Date 2018/7/26
  */
+
 open class PackerExtension() {
 
     var apkOutputDir: String? = null
     var apkNamePattern: String? = null
     var mappingOutputDir: String? = null
-    val channelContainer = DefaultChannelContainer()
+    val channelContainer = ChannelContainer()
 
-    fun channels(configuration: Action<DefaultChannelContainer>) {
+    fun channels(configuration: Action<ChannelContainer>) {
         configuration.execute(this.channelContainer)
     }
+
+    internal fun getOutputDir(project: Project): String? {
+        return apkOutputDir
+                ?: defaultOutPutDir(project)
+    }
+
+    internal fun buildApkName(channel: String, variant: BaseVariant, project: Project): String {
+
+        val channelPattern = apkNamePattern
+                ?: return defaultApkName(channel, variant)
+        return SimpleTemplateEngine()
+                .createTemplate(channelPattern)
+                .make(templateMap(channel, variant, project))
+                .toString() + ".apk"
+    }
+
+    private fun templateMap(channel: String, sourceVariant: BaseVariant, project: Project): HashMap<String, Any?> {
+        return hashMapOf<String, Any?>(
+                "appName" to project.name,
+                "projectName" to project.rootProject.name,
+                "channel" to channel,
+                "flavor" to sourceVariant.flavorName,
+                "buildType" to sourceVariant.buildType.name,
+                "versionName" to ((sourceVariant as ApplicationVariantImpl).versionName ?: "null"),
+                "versionCode" to sourceVariant.versionCode,
+                "appPkg" to sourceVariant.applicationId,
+                "buildTime" to SimpleDateFormat("yyyyMMddHHmmss").format(Date())
+        )
+    }
 }
 
-open class Channel(val name: String) {
-    var key = ""
-    val fields = HashMap<String, Any?>()
+fun defaultOutPutDir(project: Project): String = "${project.rootDir}${File.separator}packer_output"
 
+fun defaultApkName(channel: String, variant: BaseVariant): String = "$channel${variant.name?.capitalize()}.apk"
 
-    fun channelKey(_key: String) {
-        key = _key
-    }
-
-    fun field(field: String, value: Any?) {
-        fields[field] = value
-    }
-
-    override fun toString(): String {
-        return ">>[name = ${name}, key = ${key}, fields = ${fields}]"
-    }
-}
-
-open class DefaultChannelContainer() {
-    val container = HashMap<String, Channel>()
+open class ChannelContainer : HashMap<String, Channel>() {
 
     fun channel(name: String, configuration: Closure<Channel>) {
         val newChannel = Channel(name)
         configuration.delegate = newChannel
         configuration.resolveStrategy = Closure.DELEGATE_FIRST
         configuration.run()
-        container[name] = newChannel
+        this[name] = newChannel
     }
 
     fun channel(map: HashMap<String, Closure<Channel>>) {
@@ -62,9 +78,5 @@ open class DefaultChannelContainer() {
             val configuration = entry.value
             channel(name, configuration)
         }
-    }
-
-    override fun toString(): String {
-        return container.toString()
     }
 }

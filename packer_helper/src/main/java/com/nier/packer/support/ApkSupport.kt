@@ -1,6 +1,7 @@
-package com.nier.inject
+package com.nier.packer.support
 
 import com.android.apksig.ApkVerifier
+import com.nier.packer.support.ext.allocateBuffer
 import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -34,7 +35,7 @@ internal fun findCentralDirectoryStartOffset(channel: FileChannel, eocdOffset: L
     val cdsoOffset = calculateCentralDirectoryOffset(eocdOffset)
 
     channel.position(cdsoOffset)
-    val tempBuffer = allocateBuffer(OFFSET_OF_START_OF_CENTRAL_DIRECTORY_BYTE_SIZE)
+    val tempBuffer = allocateBuffer(com.nier.packer.OFFSET_OF_START_OF_CENTRAL_DIRECTORY_BYTE_SIZE)
     channel.read(tempBuffer)
     val cdso = tempBuffer.getInt(0)
     println("cdsoOffsetValue = $cdso")
@@ -55,25 +56,25 @@ internal fun getSignBlockOffsetAndSize(apkChannel: FileChannel, centralDirectory
     // @-24 bytes uint64:    size in bytes (same as the one above)
     // @-16 bytes uint128:   magic
     apkChannel.position(centralDirectoryStartOffset.toLong() -
-            APK_SIGN_BLOCK_SIZE_BYTE_SIZE -
-            APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
+            com.nier.packer.APK_SIGN_BLOCK_SIZE_BYTE_SIZE -
+            com.nier.packer.APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
 
-    val tempBuffer = allocateBuffer(APK_SIGN_BLOCK_SIZE_BYTE_SIZE + APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
+    val tempBuffer = allocateBuffer(com.nier.packer.APK_SIGN_BLOCK_SIZE_BYTE_SIZE + com.nier.packer.APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
     apkChannel.read(tempBuffer)
-    val signBlockMagicLow = tempBuffer.getLong(APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE)
-    val signBlockMagicHigh = tempBuffer.getLong(APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
-    if (signBlockMagicLow == APK_SIGN_BLOCK_MAGIC_LOW &&
-            signBlockMagicHigh == APK_SIGN_BLOCK_MAGIC_HIGH) {
+    val signBlockMagicLow = tempBuffer.getLong(com.nier.packer.APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE)
+    val signBlockMagicHigh = tempBuffer.getLong(com.nier.packer.APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
+    if (signBlockMagicLow == com.nier.packer.APK_SIGN_BLOCK_MAGIC_LOW &&
+            signBlockMagicHigh == com.nier.packer.APK_SIGN_BLOCK_MAGIC_HIGH) {
         println("check apk sign block magic num success.")
     } else {
         println("check apk sign block magic num failed, signBlockMagicLow=$signBlockMagicLow  signBlockMagicHigh=$signBlockMagicHigh.")
-        println("APK_SIGN_BLOCK_MAGIC_LOW=$APK_SIGN_BLOCK_MAGIC_LOW  APK_SIGN_BLOCK_MAGIC_HIGH=$APK_SIGN_BLOCK_MAGIC_HIGH.")
+        println("APK_SIGN_BLOCK_MAGIC_LOW=${com.nier.packer.APK_SIGN_BLOCK_MAGIC_LOW}  APK_SIGN_BLOCK_MAGIC_HIGH=${com.nier.packer.APK_SIGN_BLOCK_MAGIC_HIGH}.")
         return Pair(-1, 0)
     }
     val signBlockSize = tempBuffer.getLong(0)
     //size in bytes (excluding this field)
     //size不包括第一个size字段所占的长度8所以计算offset要吧这个8计算在内
-    val signBlockOffset = centralDirectoryStartOffset - signBlockSize - APK_SIGN_BLOCK_SIZE_BYTE_SIZE
+    val signBlockOffset = centralDirectoryStartOffset - signBlockSize - com.nier.packer.APK_SIGN_BLOCK_SIZE_BYTE_SIZE
     if (signBlockOffset < 0) {
         throw IOException("Invalid sign block offset($signBlockOffset).")
     }
@@ -87,14 +88,14 @@ internal fun getSignBlockOffsetAndSize(apkChannel: FileChannel, centralDirectory
  * signature = 0x06054b50
  */
 internal fun findApkEOCDSignatureOffset(apkFileChannel: FileChannel): Long {
-    val tempBuffer = ByteBuffer.allocate(END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE)
+    val tempBuffer = ByteBuffer.allocate(com.nier.packer.END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE)
     val fileSize = apkFileChannel.size()
     if (!checkApkFileSize()) throw IOException("invalid apk size $fileSize")
     //从后向前找 EOCD Signature
-    for (i in fileSize - END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE downTo 0) {
+    for (i in fileSize - com.nier.packer.END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE downTo 0) {
         apkFileChannel.read(tempBuffer, i)
         tempBuffer.order(ByteOrder.LITTLE_ENDIAN)
-        if (tempBuffer.getInt(0) == END_OF_CENTRAL_DIRECTORY_SIGNATURE) {
+        if (tempBuffer.getInt(0) == com.nier.packer.END_OF_CENTRAL_DIRECTORY_SIGNATURE) {
             println("find ecod signature success, position=$i")
             return i
         }
@@ -130,10 +131,10 @@ internal fun checkApkFileSize(): Boolean = true
 
 internal fun calculateCentralDirectoryOffset(endOfCentralDirectoryOffset: Long): Long {
     return endOfCentralDirectoryOffset +
-            END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE +
-            NUMBER_OF_THIS_DISK_BYTE_SIZE +
-            DISK_WHERE_CENTRAL_DIRECTORY_STARTS_BYTE_SIZE +
-            NUMBER_OF_CENTRAL_DIRECTORY_RECORDS_BYTE_SIZE +
-            TOTAL_NUMBER_OF_CENTRAL_DIRECTORY_RECORDS_BYTE_SIZE +
-            SIZE_OF_CENTRAL_DIRECTORY_BYTE_SIZE
+            com.nier.packer.END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE +
+            com.nier.packer.NUMBER_OF_THIS_DISK_BYTE_SIZE +
+            com.nier.packer.DISK_WHERE_CENTRAL_DIRECTORY_STARTS_BYTE_SIZE +
+            com.nier.packer.NUMBER_OF_CENTRAL_DIRECTORY_RECORDS_BYTE_SIZE +
+            com.nier.packer.TOTAL_NUMBER_OF_CENTRAL_DIRECTORY_RECORDS_BYTE_SIZE +
+            com.nier.packer.SIZE_OF_CENTRAL_DIRECTORY_BYTE_SIZE
 }

@@ -1,5 +1,9 @@
-package com.nier.inject
+package com.nier.packer.support
 
+import com.nier.packer.support.ext.allocateBuffer
+import com.nier.packer.support.ext.finish
+import com.nier.packer.support.ext.slice
+import com.nier.packer.support.ext.write
 import java.io.IOException
 import java.nio.ByteBuffer
 
@@ -23,8 +27,8 @@ private fun readPayload(apk: Apk): HashMap<Int, ByteBuffer> {
     apk.readOnlyChannel {
         //从apk的SignBlock的数据段中读取
         println("signBlockOffset = ${apk.mSignBlockOffset}, signBlockSize = ${apk.mSignBlockSize.toInt()}")
-        position(apk.mSignBlockOffset + APK_SIGN_BLOCK_SIZE_BYTE_SIZE)
-        val payloadBuffer = allocateBuffer(apk.mSignBlockSize.toInt() - SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE - APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
+        position(apk.mSignBlockOffset + com.nier.packer.APK_SIGN_BLOCK_SIZE_BYTE_SIZE)
+        val payloadBuffer = allocateBuffer(apk.mSignBlockSize.toInt() - com.nier.packer.SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE - com.nier.packer.APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
         read(payloadBuffer)
         payloadBuffer.position(0)
         return readValues(payloadBuffer, HashMap())
@@ -37,16 +41,16 @@ private fun readPayload(apk: Apk): HashMap<Int, ByteBuffer> {
  */
 private fun readValues(signBlock: ByteBuffer, values: HashMap<Int, ByteBuffer>): HashMap<Int, ByteBuffer> {
     println("apk sign block remain -> ${signBlock.remaining()}")
-    if (signBlock.remaining() < SIGN_BLOCK_PAYLOAD_VALUE_LENGTH_BYTE_SIZE) {
+    if (signBlock.remaining() < com.nier.packer.SIGN_BLOCK_PAYLOAD_VALUE_LENGTH_BYTE_SIZE) {
         return values
     }
     val valueSize = signBlock.long
-    if (signBlock.remaining() < valueSize || valueSize < SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE) {
+    if (signBlock.remaining() < valueSize || valueSize < com.nier.packer.SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE) {
         throw IOException("Invalid sign block payload values. sign block size = $valueSize, sign block remain size = ${signBlock.remaining()}")
     }
     val id = signBlock.int
 
-    val content = signBlock.slice(valueSize.toInt() - SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE)
+    val content = signBlock.slice(valueSize.toInt() - com.nier.packer.SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE)
     println("content.position() = ${content.position()}, content.limit() = ${content.limit()}")
     values[id] = content
     return readValues(signBlock, values)
@@ -55,14 +59,14 @@ private fun readValues(signBlock: ByteBuffer, values: HashMap<Int, ByteBuffer>):
 /**
  * 添加一个追加信息到SignBlock的payload中
  */
-internal fun addPayload(apk: Apk, payload: IExtraPayload) {
+internal fun addPayload(apk: Apk, payload: IExtraPayloadData) {
     if (apk.invalid() && verifyApk(apk.source)) {
         throw IllegalArgumentException("apk not init, do you forget invoke init()")
     }
     //先将旧的数据读取出来
     val payloads = readPayload(apk)
     //检查是否存在V2的签名
-    if (payloads.isEmpty() || payloads[APK_SIGN_V2_KEY] == null) {
+    if (payloads.isEmpty() || payloads[com.nier.packer.APK_SIGN_V2_KEY] == null) {
         throw IOException("Miss sign v2 block.")
     }
     //构造新的payload数据集并且写入到apk中
@@ -87,23 +91,23 @@ private fun writeValues(apk: Apk, payloads: HashMap<Int, ByteBuffer>) {
         }
 
         //跳过开始8子节用于记录SignBlock大小的字段，先进行Payload的写入
-        position(apk.mSignBlockOffset + APK_SIGN_BLOCK_SIZE_BYTE_SIZE) //跳过size
+        position(apk.mSignBlockOffset + com.nier.packer.APK_SIGN_BLOCK_SIZE_BYTE_SIZE) //跳过size
         var signBlockLength: Long = 0
         //一次写入新的payload到SignBlock中
         payloads.entries.forEach { payloadEntry ->
             println("payload value limit = ${payloadEntry.value.limit()}")
             //写入Payload Entry 数据长度
-            val payloadLength = payloadEntry.value.limit() + SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE
+            val payloadLength = payloadEntry.value.limit() + com.nier.packer.SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE
 
             write {
-                allocateBuffer(SIGN_BLOCK_PAYLOAD_VALUE_LENGTH_BYTE_SIZE).apply {
+                allocateBuffer(com.nier.packer.SIGN_BLOCK_PAYLOAD_VALUE_LENGTH_BYTE_SIZE).apply {
                     putLong(payloadLength.toLong())
                     finish()
                 }
             }
             //写入int型的Key值
             write {
-                allocateBuffer(SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE).apply {
+                allocateBuffer(com.nier.packer.SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE).apply {
                     putInt(payloadEntry.key)
                     finish()
                 }
@@ -111,15 +115,15 @@ private fun writeValues(apk: Apk, payloads: HashMap<Int, ByteBuffer>) {
             //写入Payload数据体
             write { payloadEntry.value }
             //计算数据长度
-            signBlockLength += SIGN_BLOCK_PAYLOAD_VALUE_LENGTH_BYTE_SIZE + payloadLength
+            signBlockLength += com.nier.packer.SIGN_BLOCK_PAYLOAD_VALUE_LENGTH_BYTE_SIZE + payloadLength
         }
         //不包括开头的size，因此这里只加上1个size的长度8
-        signBlockLength += APK_SIGN_BLOCK_SIZE_BYTE_SIZE
-        signBlockLength += APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2
+        signBlockLength += com.nier.packer.APK_SIGN_BLOCK_SIZE_BYTE_SIZE
+        signBlockLength += com.nier.packer.APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2
 
         //写入末尾的SignBock长度字段
         write {
-            allocateBuffer(APK_SIGN_BLOCK_SIZE_BYTE_SIZE) {
+            allocateBuffer(com.nier.packer.APK_SIGN_BLOCK_SIZE_BYTE_SIZE) {
                 putLong(signBlockLength)
                 finish()
             }
@@ -127,16 +131,16 @@ private fun writeValues(apk: Apk, payloads: HashMap<Int, ByteBuffer>) {
 
         //写入低8位魔数
         write {
-            allocateBuffer(APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE) {
-                putLong(APK_SIGN_BLOCK_MAGIC_LOW)
+            allocateBuffer(com.nier.packer.APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE) {
+                putLong(com.nier.packer.APK_SIGN_BLOCK_MAGIC_LOW)
                 finish()
             }
         }
 
         //写入高8位魔数
         write {
-            allocateBuffer(APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE).apply {
-                putLong(APK_SIGN_BLOCK_MAGIC_HIGH)
+            allocateBuffer(com.nier.packer.APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE).apply {
+                putLong(com.nier.packer.APK_SIGN_BLOCK_MAGIC_HIGH)
                 finish()
             }
         }
@@ -148,7 +152,7 @@ private fun writeValues(apk: Apk, payloads: HashMap<Int, ByteBuffer>) {
         position(apk.mSignBlockOffset)
 
         write {
-            allocateBuffer(APK_SIGN_BLOCK_SIZE_BYTE_SIZE).apply {
+            allocateBuffer(com.nier.packer.APK_SIGN_BLOCK_SIZE_BYTE_SIZE).apply {
                 putLong(signBlockLength)
                 finish()
             }
@@ -161,7 +165,7 @@ private fun writeValues(apk: Apk, payloads: HashMap<Int, ByteBuffer>) {
             //更新End of central directory中记录Central directory start offset的数据段
             val newEOCDSignature = findApkEOCDSignatureOffset(outer)
             position(calculateCentralDirectoryOffset(newEOCDSignature))
-            allocateBuffer(OFFSET_OF_START_OF_CENTRAL_DIRECTORY_BYTE_SIZE) {
+            allocateBuffer(com.nier.packer.OFFSET_OF_START_OF_CENTRAL_DIRECTORY_BYTE_SIZE) {
                 putInt(newCentralDirectoryStartOffset.toInt())
                 finish()
             }

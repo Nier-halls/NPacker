@@ -37,7 +37,8 @@ android {
 }
 
 packer {
-    apkOutputDir = "${rootDir}${File.separator}packer"
+    apkOutputDir = "${rootDir}${File.separator}packer${File.separator}output"
+    apkNamePattern = 'tzzb_${appPkg}_${channel}_${flavor}_${buildType}_${versionName}_${versionCode}_${buildTime}'
     channels {
         channel "shouchao": {
             channelKey "12345551234"
@@ -48,9 +49,9 @@ packer {
 
         channel "huawei": {
             channelKey "2333333333333"
-            field "field11", "value11"
-            field "field12", "value21"
-            field "field13", "value13"
+            field "field1", "value11"
+            field "field2", "value21"
+            field "field3", "value13"
         }
     }
 }
@@ -92,7 +93,7 @@ android {
 
         fgd {}
     }
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '28.0.0'
 }
 
 repositories {
@@ -105,7 +106,7 @@ dependencies {
     implementation "com.android.support.constraint:constraint-layout:1.1.2"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     implementation "com.google.guava:guava:25.0-android"
-    implementation "com.nier.injector:injector-library:1.0"
+    implementation "com.nier.packer:helper:1.0"
 //    implementation project(":packer")
 //    implementation project(":injector")
     api "org.jetbrains.anko:anko-common:$anko_version"

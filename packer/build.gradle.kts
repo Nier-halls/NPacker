@@ -120,7 +120,7 @@ java.sourceSets
 dependencies {
     implementation("com.android.tools.build:gradle:3.1.3")
     implementation("com.android.tools.build:apksig:3.1.3")
-    implementation("com.nier.injector:injector-library:1.0")
+    implementation("com.nier.packer:helper:1.0")
 //    compile "org.jetbrains.kotlin:kotlin-native-gradle-plugin:0.6.2"
     //    kotlin 标准库
 //    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"

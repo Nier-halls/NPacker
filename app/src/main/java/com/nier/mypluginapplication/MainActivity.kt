@@ -9,7 +9,7 @@ import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
-import com.nier.inject.Apk
+import com.nier.packer.Packer
 import java.io.File
 import java.nio.ByteBuffer
 
@@ -57,10 +57,13 @@ class MainActivity : AppCompatActivity() {
         val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
         for (app in apps) {
             if (app.packageName.startsWith("com.nier.mypluginapplication")) {
-                val apk = Apk.createApk(File(app.sourceDir))
-                Log.d("fgd", "app version = ${BuildConfig.VERSION_NAME}_${BuildConfig.VERSION_CODE}extrad data = ${String(apk.getExtraData()
-                        ?: "Null".toByteArray())}")
-
+                val apk = Packer.init(File(app.sourceDir))
+                Log.d("fgd", "app version = ${BuildConfig.VERSION_NAME}_${BuildConfig.VERSION_CODE}")
+                Log.d("fgd", "app channel = ${apk.channelName()}")
+                Log.d("fgd", "app channel code = ${apk.channelCode()}")
+                Log.d("fgd", "app channel field1 = ${apk.extraData("field1")}")
+                Log.d("fgd", "app channel field2 = ${apk.extraData("field2")}")
+                Log.d("fgd", "app channel field3 = ${apk.extraData("field3")}")
 
 //                RandomAccessFile(File(app.sourceDir), "r").use {
 //                    it.channel.use {

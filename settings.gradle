@@ -1,1 +1,1 @@
-include ':app', ':packer',':injector'
+include ':app', ':packer',':packer_helper'

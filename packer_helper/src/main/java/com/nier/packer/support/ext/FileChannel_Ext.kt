@@ -1,4 +1,4 @@
-package com.nier.inject
+package com.nier.packer.support.ext
 
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel

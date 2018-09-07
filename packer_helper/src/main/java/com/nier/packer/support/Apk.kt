@@ -1,5 +1,6 @@
-package com.nier.inject
+package com.nier.packer.support
 
+import com.nier.packer.DEFAULT_EXTRA_PAYLOAD_KEY
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.channels.FileChannel
@@ -8,7 +9,7 @@ import java.nio.channels.FileChannel
  * Created by Nier
  * Date 2018/8/20
  */
-class Apk private constructor(var source: File) {
+internal class Apk private constructor(var source: File) {
 
     internal interface IChannelAction {
         fun action(fileChannel: FileChannel)
@@ -20,7 +21,7 @@ class Apk private constructor(var source: File) {
     internal lateinit var mExtraPayloadProtocol: IExtraPayloadHandler
 
     companion object {
-        fun createApk(sourceDir: File, extraPayloadHandler: IExtraPayloadHandler = ExtraPayloadHandler()): Apk {
+       internal fun createApk(sourceDir: File, extraPayloadHandler: IExtraPayloadHandler = ExtraPayloadHandler()): Apk {
             if (!sourceDir.exists()) println("apk not found.")
             return Apk(sourceDir).apply {
                 mExtraPayloadProtocol = extraPayloadHandler
@@ -75,16 +76,16 @@ class Apk private constructor(var source: File) {
         return null
     }
 
-    fun injectExtraData(data: IExtraPayload) {
+    fun injectExtraData(data: IExtraPayloadData) {
         addPayload(this, data)
     }
 }
 
-fun main(args: Array<String>) {
-    val target = File("F:\\AndroidProject\\GradlePlugin\\packer", "tmpFgdDebug.apk")
-    val source = File("F:\\AndroidProject\\GradlePlugin\\app\\build\\outputs\\apk\\fgd\\debug", "app-fgd-debug.apk")
-    copyFileError(source, target)
-    println("verify = ${verifyApk(target)}")
+//fun main(args: Array<String>) {
+//    val target = File("F:\\AndroidProject\\GradlePlugin\\packer", "tmpFgdDebug.apk")
+//    val source = File("F:\\AndroidProject\\GradlePlugin\\app\\build\\outputs\\apk\\fgd\\debug", "app-fgd-debug.apk")
+//    copyFileError(source, target)
+//    println("verify = ${verifyApk(target)}")
 //    Apk.createApk(target).injectExtraData(object : IExtraPayload {
 //        override fun key(): Int {
 //            return DEFAULT_EXTRA_PAYLOAD_KEY
@@ -95,7 +96,7 @@ fun main(args: Array<String>) {
 //                    ?: throw IllegalArgumentException("Unknow extra payload data.")
 //        }
 //    })
-}
+//}
 
 //fun main(args: Array<String>) {
 ////    fun findApk(): File = File("${System.getProperty("user.dir")}${File.separator}tmpNierDebug.apk")
