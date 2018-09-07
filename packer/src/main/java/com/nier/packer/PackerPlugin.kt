@@ -32,7 +32,7 @@ open class PackerPlugin : Plugin<Project> {
             })
             //配置clean task
             val cleanTask = project.tasks.findByName("clean")
-                    ?: project.task("packerClean", Delete::class) {}
+                    ?: project.task("clean", Delete::class) {}
             cleanTask.configure(closureOf<Any> {
                 delete(customExtension.getOutputDir(project))
             })
