@@ -41,12 +41,12 @@ open class InjectTask : DefaultTask() {
             val sourceApk = sourceVariant.outputs
                     ?.elementAt(0)
                     ?.outputFile
-            val outputDir = extension.getOutputDir(project)
+            val outputDir = "${extension.getOutputDir(project)}${File.separator}${it.key}${File.separator}${sourceVariant.buildType.name}"
             val outputDirFile = File(outputDir)
             if (!outputDirFile.exists()) {
                 outputDirFile.mkdirs()
             }
-            val copiedApk = File(extension.getOutputDir(project), extension.buildApkName(it.key, sourceVariant, project))
+            val copiedApk = File(outputDir, extension.buildApkName(it.key, sourceVariant, project))
             if (verifyApk(sourceApk!!)) {
                 println("Output dir >>> ${copiedApk.path}")
                 copyFile(sourceApk, copiedApk)

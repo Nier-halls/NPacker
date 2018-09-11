@@ -12,7 +12,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.nier.packer:packer:1.0'
-        classpath 'com.android.tools.build:gradle:3.1.3'
+        classpath 'com.android.tools.build:gradle:3.0.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
         // NOTE: Do not place your application dependencies here; they belong
@@ -37,21 +37,23 @@ android {
 }
 
 packer {
-    apkOutputDir = "${rootDir}${File.separator}packer${File.separator}output"
+//    apkOutputDir = "${rootDir}${File.separator}packer${File.separator}output"
     apkNamePattern = 'tzzb_${appPkg}_${channel}_${flavor}_${buildType}_${versionName}_${versionCode}_${buildTime}'
     channels {
+
+
+        channel "zuawei1": {
+            channelKey "2333333333333"
+            field "field1", "value11"
+            field "field2", "value21"
+            field "field3", "value13"
+        }
+
         channel "shouchao": {
             channelKey "12345551234"
             field "field1", "value1"
             field "field2", "value2"
             field "field3", "value3"
-        }
-
-        channel "huawei1": {
-            channelKey "2333333333333"
-            field "field1", "value11"
-            field "field2", "value21"
-            field "field3", "value13"
         }
     }
 }
@@ -79,6 +81,7 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.v2
+            buildConfigField("String","testString","\"lalalala\"")
         }
         release {
             minifyEnabled false

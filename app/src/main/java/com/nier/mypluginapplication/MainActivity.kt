@@ -65,6 +65,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d("fgd", "app channel field2 = ${apk.extraData("field2")}")
                 Log.d("fgd", "app channel field3 = ${apk.extraData("field3")}")
 
+                Log.d("fgd", "BuildConfig.testString >>> ${BuildConfig.testString}")
 //                RandomAccessFile(File(app.sourceDir), "r").use {
 //                    it.channel.use {
 //                        print("")

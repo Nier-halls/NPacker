@@ -118,8 +118,8 @@ java.sourceSets
 
 
 dependencies {
-    implementation("com.android.tools.build:gradle:3.1.3")
-    implementation("com.android.tools.build:apksig:3.1.3")
+    implementation("com.android.tools.build:gradle:3.0.1")
+    implementation("com.android.tools.build:apksig:3.0.1")
     implementation("com.nier.packer:helper:1.0")
 //    compile "org.jetbrains.kotlin:kotlin-native-gradle-plugin:0.6.2"
     //    kotlin 标准库
@@ -133,8 +133,26 @@ dependencies {
     implementation(kotlin("stdlib", kotlin_version))
 }
 
+project.tasks.create("sourcesJar", Jar::class.java) {
+    from(java.sourceSets.getByName("main").allSource)
+    classifier = "sources"
+}
+
+project.tasks.create("javadocJar", Jar::class.java) {
+    from(java.docsDir)
+    classifier = "javadoc"
+}
+
+
 publishing {
     repositories {
         maven(url = uri("../publish"))
     }
+
+//    publications {
+//        register("mavenJava", MavenPublication::class) {
+//            from(components["java"])
+//            artifact(sourcesJar.get())
+//        }
+//    }
 }

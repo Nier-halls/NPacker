@@ -2,7 +2,11 @@ package com.nier.packer
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.BaseVariant
-import org.gradle.api.Action
+import com.android.build.gradle.internal.api.ApplicationVariantImpl
+import com.android.builder.internal.BaseConfigImpl
+import com.android.builder.internal.ClassFieldImpl
+import com.android.builder.model.ClassField
+import com.nier.packer.channel.Channel
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -25,7 +29,6 @@ open class PackerPlugin : Plugin<Project> {
             //没有android组建说明配置有问题，不是android项目则不进行后续多渠道打包
             val appExtension = this.extensions["android"] as? AppExtension
                     ?: return@afterEvaluate
-
             //生成关联assemble task的渠道信息修改task，顺便生成group和root等依赖任务，方便分组或全部执行
             appExtension.applicationVariants.forEach(Consumer { variant ->
                 generateTaskAndBuildDepends(project, customExtension, variant)
@@ -44,7 +47,21 @@ open class PackerPlugin : Plugin<Project> {
  * 生成添加渠道信息的task和相应的依赖任务
  */
 private fun generateTaskAndBuildDepends(project: Project, extension: PackerExtension, variant: BaseVariant) {
-    //create packTask
+    //create single channelTask
+    extension.channelContainer.forEach { channelEntry: Map.Entry<String, Channel> ->
+        project.task("$PACK_TASK_PREFIX${channelEntry.key.capitalize()}${variant.name.capitalize()}", InjectTask::class) {
+            this.dependsOn.add(variant.assemble)
+            this.extension = extension.clone()
+            val singleChannelContainer = ChannelContainer()
+            singleChannelContainer[channelEntry.key] = channelEntry.value
+            this.extension.channelContainer = singleChannelContainer
+            this.sourceVariant = variant
+//            (variant.buildType as BaseConfigImpl).addBuildConfigField(ClassFieldImpl("String", "testString", "${channelEntry.key}2233"))
+//            (variant .buildType.buildConfigFields as MutableMap<String, ClassField>)["testString"] =
+//                    ClassFieldImpl("String", "testString", "${channelEntry.key}2233")
+        }
+    }
+    //create packFlavorTask
     val packTask = project.task("$PACK_TASK_PREFIX${variant.name.capitalize()}", InjectTask::class) {
         this.dependsOn.add(variant.assemble)
         this.extension = extension
@@ -55,13 +72,17 @@ private fun generateTaskAndBuildDepends(project: Project, extension: PackerExten
     val typeTask = project.tasks.findByName(buildTypeName)
             ?: generateTypeTask(project, buildTypeName)
     //buildTypeTask dependsOn packTask
-    typeTask.dependsOn.add(packTask)
+    if (packTask !in typeTask.dependsOn && typeTask.name != packTask.name) {
+        typeTask.dependsOn.add(packTask)
+    }
+
+
 
     //create rootTask
     val rootTask = project.tasks.findByName(ROOT_TASK_NAME)
             ?: generateRootTask(project)
     //rootTask dependsOn buildTypeTask, run rootTask build all apk
-    if (typeTask !in rootTask.dependsOn) {
+    if (typeTask !in rootTask.dependsOn && rootTask.name != typeTask.name) {
         rootTask.dependsOn.add(typeTask)
     }
 }

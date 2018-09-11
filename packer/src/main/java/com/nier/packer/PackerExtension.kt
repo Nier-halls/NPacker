@@ -1,6 +1,5 @@
 package com.nier.packer
 
-import com.android.build.api.dsl.variant.ApplicationVariant
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.internal.api.ApplicationVariantImpl
 import com.nier.packer.channel.Channel
@@ -22,10 +21,20 @@ open class PackerExtension() {
     var apkOutputDir: String? = null
     var apkNamePattern: String? = null
     var mappingOutputDir: String? = null
-    val channelContainer = ChannelContainer()
+    var channelContainer = ChannelContainer()
 
     fun channels(configuration: Action<ChannelContainer>) {
         configuration.execute(this.channelContainer)
+    }
+
+
+    internal fun clone(): PackerExtension {
+        val cloned = PackerExtension()
+        cloned.apkNamePattern = this.apkNamePattern
+        cloned.apkOutputDir = this.apkOutputDir
+        cloned.mappingOutputDir = this.mappingOutputDir
+        cloned.channelContainer = this.channelContainer.clone()
+        return cloned
     }
 
     internal fun getOutputDir(project: Project): String? {
@@ -58,11 +67,15 @@ open class PackerExtension() {
     }
 }
 
-fun defaultOutPutDir(project: Project): String = "${project.rootDir}${File.separator}packer_output"
+fun defaultOutPutDir(project: Project): String = "${project.rootDir}${File.separator}packer${File.separator}outputs${File.separator}apk"
 
 fun defaultApkName(channel: String, variant: BaseVariant): String = "$channel${variant.name?.capitalize()}.apk"
 
-open class ChannelContainer : HashMap<String, Channel>() {
+open class ChannelContainer : HashMap<String, Channel> {
+
+    constructor() : super()
+
+    constructor(m: MutableMap<String, Channel>?) : super(m)
 
     fun channel(name: String, configuration: Closure<Channel>) {
         val newChannel = Channel(name)
@@ -78,5 +91,12 @@ open class ChannelContainer : HashMap<String, Channel>() {
             val configuration = entry.value
             channel(name, configuration)
         }
+    }
+
+    /**
+     * 浅拷贝
+     */
+    override fun clone(): ChannelContainer {
+        return ChannelContainer(this)
     }
 }
