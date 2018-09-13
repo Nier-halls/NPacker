@@ -40,20 +40,17 @@ packer {
 //    apkOutputDir = "${rootDir}${File.separator}packer${File.separator}output"
     apkNamePattern = 'tzzb_${appPkg}_${channel}_${flavor}_${buildType}_${versionName}_${versionCode}_${buildTime}'
     channels {
-
-
-        channel "zuawei1": {
+        channel "huawei1": {
             channelKey "2333333333333"
-            field "field1", "value11"
-            field "field2", "value21"
-            field "field3", "value13"
+            buildConfigField "String", "field2", "\"huawei1value21\""
+            buildConfigField "String", "field3", "\"huawei1value13\""
         }
 
         channel "shouchao": {
             channelKey "12345551234"
-            field "field1", "value1"
-            field "field2", "value2"
-            field "field3", "value3"
+            buildConfigField "String", "field1", "shouchaovalue1"
+            buildConfigField "String", "field2", "\"shouchaovalue2\""
+            buildConfigField "String", "field3", "\"shouchaovalue3\""
         }
     }
 }
@@ -81,11 +78,13 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.v2
-            buildConfigField("String","testString","\"lalalala\"")
+            buildConfigField "String", "field1", "\"debugbuildTypesfield1\""
+            buildConfigField("String", "testString", "\"lalalala\"")
         }
         release {
             minifyEnabled false
             signingConfig signingConfigs.v2
+            buildConfigField "String", "field1", "\"releasebuildTypesfield1\""
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

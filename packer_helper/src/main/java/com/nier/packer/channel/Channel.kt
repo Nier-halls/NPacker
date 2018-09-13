@@ -28,18 +28,20 @@ open class Channel(val name: String) : IExtraPayloadData {
     }
 
     var key = ""
-    val fields = HashMap<String, Any?>()
+    val fields = HashMap<String, ChannelExtraField?>()
 
 
     fun channelKey(_key: String) {
         key = _key
     }
 
-    fun field(field: String, value: Any?) {
-        fields[field] = value
+    fun buildConfigField(type: String, key: String, value: String) {
+        fields[key] = ChannelExtraField(type, key, value)
     }
 
     override fun toString(): String {
-        return ">>[name = ${name}, key = ${key}, fields = ${fields}]"
+        return ">>[name = $name, key = $key, fields = $fields]"
     }
 }
+
+data class ChannelExtraField(val type: String, val name: String, val value: String)
