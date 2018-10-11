@@ -21,7 +21,7 @@ internal class Apk private constructor(var source: File) {
     internal lateinit var mExtraPayloadProtocol: IExtraPayloadHandler
 
     companion object {
-       internal fun createApk(sourceDir: File, extraPayloadHandler: IExtraPayloadHandler = ExtraPayloadHandler()): Apk {
+        internal fun createApk(sourceDir: File, extraPayloadHandler: IExtraPayloadHandler = ExtraPayloadHandler()): Apk {
             if (!sourceDir.exists()) println("apk not found.")
             return Apk(sourceDir).apply {
                 mExtraPayloadProtocol = extraPayloadHandler
