@@ -50,8 +50,12 @@ class Packer private constructor() {
 
     private fun getChannel(): Channel? {
         if (currentChannel == null) {
+            try{
             currentChannel = Channel.parse(apk.getExtraData(DEFAULT_EXTRA_PAYLOAD_KEY)
                     ?: return null)
+            }catch (e:Exception){
+                e.printStackTrace()
+            }
         }
         return currentChannel
     }
@@ -60,6 +64,9 @@ class Packer private constructor() {
 
     fun channelCode(): String? = getChannel()?.key
 
+
+    //todo 添加缓存，避免重复获取。在Thread interrupt的情况下读取会崩溃
+    //todo 需要添加interrupt的判断
     @Suppress("IMPLICIT_CAST_TO_ANY", "UNCHECKED_CAST")
     fun <T> buildField(key: String): T? {
         val classField = getChannel()?.fields?.get(key) ?: return null
