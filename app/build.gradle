@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
-apply plugin: 'packer'
+//apply plugin: 'packer'
 
 buildscript {
     repositories {
@@ -11,8 +11,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.nier.packer:packer:1.0'
-        classpath 'com.android.tools.build:gradle:3.0.1'
+//        classpath 'com.nier.packer:packer:1.0'
+        classpath "com.android.tools.build:gradle:$gradle_version"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
         // NOTE: Do not place your application dependencies here; they belong
@@ -36,32 +36,32 @@ android {
     }
 }
 
-packer {
-//    apkOutputDir = "${rootDir}${File.separator}packer${File.separator}output"
-    apkNamePattern = 'tzzb_${appPkg}_${channel}_${flavor}_${buildType}_${versionName}_${versionCode}_${buildTime}'
-    channels {
-        channel "huawei1": {
-            channelKey "2333333333333"
-            buildConfigField "String", "field2", "\"huawei1value21\""
-            buildConfigField "String", "field3", "\"huawei1value13\""
-        }
-
-        channel "shouchao": {
-            channelKey "12345551234"
-            buildConfigField "String", "field1", "shouchaovalue1"
-            buildConfigField "String", "field2", "\"shouchaovalue2\""
-            buildConfigField "String", "field3", "\"shouchaovalue3\""
-        }
-    }
-}
+//packer {
+////    apkOutputDir = "${rootDir}${File.separator}packer${File.separator}output"
+//    apkNamePattern = 'tzzb_${appPkg}_${channel}_${flavor}_${buildType}_${versionName}_${versionCode}_${buildTime}'
+//    channels {
+//        channel "huawei1": {
+//            channelKey "2333333333333"
+//            buildConfigField "String", "field2", "\"huawei1value21\""
+//            buildConfigField "String", "field3", "\"huawei1value13\""
+//        }
+//
+//        channel "shouchao": {
+//            channelKey "12345551234"
+//            buildConfigField "String", "field1", "shouchaovalue1"
+//            buildConfigField "String", "field2", "\"shouchaovalue2\""
+//            buildConfigField "String", "field3", "\"shouchaovalue3\""
+//        }
+//    }
+//}
 
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
     defaultConfig {
         applicationId "com.nier.mypluginapplication"
         minSdkVersion 15
-        targetSdkVersion 21
+        targetSdkVersion 28
         versionCode 3
         versionName "3.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -79,7 +79,7 @@ android {
         debug {
             signingConfig signingConfigs.v2
             buildConfigField "String", "field1", "\"debugbuildTypesfield1\""
-            buildConfigField("String", "testString", "\"lalalala\"")
+//            buildConfigField("String", "testString", "\"lalalala\"")
         }
         release {
             minifyEnabled false
@@ -95,7 +95,7 @@ android {
 
         fgd {}
     }
-    buildToolsVersion '28.0.0'
+    buildToolsVersion '28.0.3'
 }
 
 repositories {
@@ -104,13 +104,13 @@ repositories {
 
 dependencies {
     implementation fileTree(include: ["*.jar"], dir: "libs")
-    implementation "com.android.support:appcompat-v7:27.1.1"
-    implementation "com.android.support.constraint:constraint-layout:1.1.2"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation "com.android.support.constraint:constraint-layout:1.1.3"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation "com.google.guava:guava:25.0-android"
-    implementation "com.nier.packer:helper:1.0"
+//    implementation "com.nier.packer:helper:1.0"
 //    implementation project(":packer")
-//    implementation project(":injector")
+////    implementation project(":injector")
 //    api "org.jetbrains.anko:anko-common:$anko_version"
 }
 

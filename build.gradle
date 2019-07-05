@@ -1,19 +1,19 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.1.4-3'
-    ext.anko_version = '0.10.2'
+    def versionConfig = new ConfigSlurper().parse(new File("version.properties").toURI().toURL())
+    ext {
+        kotlin_version = versionConfig.kotlin
+        anko_version = versionConfig.anko
+        gradle_version = versionConfig.android_gradle_plugin
+    }
 
     repositories {
         google()
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
     }
 }
 
@@ -34,20 +34,12 @@ task clean(type: Delete) {
     finalizedBy()
 }
 
-//taskClean.finalizedBy(rootProject.project(":packer").tasks.findByPath("publish"))
-
-task printTask() {
-    doLast {
-        println "printTask task !!! "
-        println rootProject.project(":packer")
-        rootProject.project(":packer").tasks.each { task ->
-            println "printTask task = ${task.getName()} "
-        }
-    }
-}
-
-//task publish(){}
-
-//task publish(type: rootProject.project(":packer").tasks.findByPath("publish").class) {
-////    "gradle :packer:publish".execute()
+//task printTask() {
+//    doLast {
+//        println "printTask task !!! "
+//        println rootProject.project(":packer")
+//        rootProject.project(":packer").tasks.each { task ->
+//            println "printTask task = ${task.getName()} "
+//        }
+//    }
 //}

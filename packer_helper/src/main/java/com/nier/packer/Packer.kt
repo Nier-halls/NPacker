@@ -90,7 +90,7 @@ class Packer private constructor() {
             TYPE_FLOAT, TYPE_FLOAT_LOWER_CASE -> classField.value.toFloatOrNull() as T
 
 
-            TYPE_BOOLEAN, TYPE_BOOLEAN_LOWER_CASE -> classField.value.toDoubleOrNull() as T
+            TYPE_BOOLEAN, TYPE_BOOLEAN_LOWER_CASE -> classField.value.toBoolean() as T
 
             else -> null
 

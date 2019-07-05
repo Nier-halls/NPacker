@@ -13,8 +13,7 @@ def find_eocd_offset(file, file_len):
     eocd_offset = -1
     for i in reversed(range(0, file_len - end_of_central_directory_block_size + 1)):
         file.seek(i)
-        if int.from_bytes(file.read(end_of_central_directory_block_size), byteorder='little',
-                          signed=False) == end_of_central_directory_signature:
+        if int.from_bytes(file.read(end_of_central_directory_block_size), byteorder='little', signed=False) == end_of_central_directory_signature:
             print("eocd position = " + str(i))
             eocd_offset = i
             break

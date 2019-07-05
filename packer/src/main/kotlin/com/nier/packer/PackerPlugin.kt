@@ -2,10 +2,6 @@ package com.nier.packer
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.BaseVariant
-import com.android.build.gradle.internal.api.ApplicationVariantImpl
-import com.android.builder.internal.BaseConfigImpl
-import com.android.builder.internal.ClassFieldImpl
-import com.android.builder.model.ClassField
 import com.nier.packer.channel.Channel
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -37,7 +33,7 @@ open class PackerPlugin : Plugin<Project> {
             val cleanTask = project.tasks.findByName("clean")
                     ?: project.task("clean", Delete::class) {}
             cleanTask.configure(closureOf<Any> {
-                delete(customExtension.getOutputDir(project))
+                (this as Delete).delete(customExtension.getOutputDir(project))
             })
         }
     }
@@ -50,7 +46,7 @@ private fun generateTaskAndBuildDepends(project: Project, extension: PackerExten
     //create single channelTask
     extension.channelContainer.forEach { channelEntry: Map.Entry<String, Channel> ->
         project.task("$PACK_TASK_PREFIX${channelEntry.key.capitalize()}${variant.name.capitalize()}", InjectTask::class) {
-            this.dependsOn.add(variant.assemble)
+            this.dependsOn.add(variant.assembleProvider)
             this.extension = extension.clone()
             val singleChannelContainer = ChannelContainer()
             singleChannelContainer[channelEntry.key] = channelEntry.value
@@ -63,7 +59,7 @@ private fun generateTaskAndBuildDepends(project: Project, extension: PackerExten
     }
     //create packFlavorTask
     val packTask = project.task("$PACK_TASK_PREFIX${variant.name.capitalize()}", InjectTask::class) {
-        this.dependsOn.add(variant.assemble)
+        this.dependsOn.add(variant.assembleProvider)
         this.extension = extension
         this.sourceVariant = variant
     }
