@@ -1,0 +1,1 @@
+C:\Develop\Project\Android\NPacker\buildSrc\build\classes\kotlin\main\Dependencies.class;C:\Develop\Project\Android\NPacker\buildSrc\build\classes\kotlin\main\DependenciesKt.class;C:\Develop\Project\Android\NPacker\buildSrc\build\classes\kotlin\main\Publish.class
