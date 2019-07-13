@@ -1,0 +1,120 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'npacker'
+
+buildscript {
+    repositories {
+        maven {
+            url uri("C:\\Develop\\Project\\Android\\NPacker\\publish") //packer plugin
+        }
+        google()
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.nier.packer:packer_plugin:1.1.0'
+        classpath "com.android.tools.build:gradle:3.4.1"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.41"
+        classpath "org.jetbrains.kotlin:kotlin-android-extensions:1.3.41"
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+//apply from: "packer.gradle.kts"
+
+repositories {
+    maven { url "C:\\Develop\\Project\\Android\\NPacker\\publish" }//packer plugin
+    mavenCentral()
+    google()
+    jcenter()
+}
+
+android {
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+}
+
+//packer {
+////    apkOutputDir = "${rootDir}${File.separator}packer${File.separator}output"
+//    apkNamePattern = 'tzzb_${appPkg}_${channel}_${flavor}_${buildType}_${versionName}_${versionCode}_${buildTime}'
+//    channels {
+//        channel "huawei1": {
+//            channelKey "2333333333333"
+//            buildConfigField "String", "field2", "\"huawei1value21\""
+//            buildConfigField "String", "field3", "\"huawei1value13\""
+//        }
+//
+//        channel "shouchao": {
+//            channelKey "12345551234"
+//            buildConfigField "String", "field1", "shouchaovalue1"
+//            buildConfigField "String", "field2", "\"shouchaovalue2\""
+//            buildConfigField "String", "field3", "\"shouchaovalue3\""
+//        }
+//    }
+//}
+
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.nier.mypluginapplication"
+        minSdkVersion 15
+        targetSdkVersion 28
+        versionCode 3
+        versionName "3.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+        v2 {
+            storeFile file("plugin_app.jks")
+            storePassword '123456'
+            keyAlias 'key0'
+            keyPassword '123456'
+            v2SigningEnabled true
+        }
+    }
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.v2
+            buildConfigField "String", "field1", "\"debugbuildTypesfield1\""
+//            buildConfigField("String", "testString", "\"lalalala\"")
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.v2
+            buildConfigField "String", "field1", "\"releasebuildTypesfield1\""
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    flavorDimensions "mine"
+    productFlavors {
+        nier {}
+
+        fgd {}
+    }
+    buildToolsVersion '28.0.3'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation fileTree(include: ["*.jar"], dir: "libs")
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation "com.android.support.constraint:constraint-layout:1.1.3"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.41"
+    implementation "com.google.guava:guava:25.0-android"
+    implementation "com.nier.packer:packer_helper:1.1.0"
+//    implementation project(":packer")
+////    implementation project(":injector")
+//    api "org.jetbrains.anko:anko-common:$anko_version"
+}
+
+//convention.getPlugin(com.nier.packer.PackerPluginConvention).apkName = "HaHa"
+//convention.getPlugin(com.nier.packer.PackerPluginConvention).addChannels("Channel1","Channel2")
