@@ -36,22 +36,22 @@ open class InjectTask : DefaultTask() {
                 ?.outputFile?.canonicalPath}")
 
 
-        channels.forEach {
+        channels.forEach { channelEntry ->
             println("start Inject task.")
             val sourceApk = sourceVariant.outputs
                     ?.elementAt(0)
                     ?.outputFile
-            val outputDir = "${extension.getOutputDir(project)}${File.separator}${it.key}${File.separator}${sourceVariant.buildType.name}"
+            val outputDir = "${extension.getOutputDir(project)}${File.separator}${channelEntry.key}${File.separator}${sourceVariant.buildType.name}"
             val outputDirFile = File(outputDir)
             if (!outputDirFile.exists()) {
                 outputDirFile.mkdirs()
             }
-            val copiedApk = File(outputDir, extension.buildApkName(it.key, sourceVariant, project))
+            val copiedApk = File(outputDir, extension.buildApkName(channelEntry.key, sourceVariant, project))
             if (verifyApk(sourceApk!!)) {
                 println("Output dir >>> ${copiedApk.path}")
                 copyFile(sourceApk, copiedApk)
                 println("pre verify >>> ${verifyApk(copiedApk)}")
-                Packer.init(copiedApk).injectData(it.value)
+                Packer.init(copiedApk).injectData(channelEntry.value)
             } else {
                 throw IOException("Invalid source apk (${sourceApk.path})")
             }

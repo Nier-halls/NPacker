@@ -41,7 +41,7 @@ open class NPackerPlugin : Plugin<Project> {
      */
     private fun generateTaskAndBuildDepends(project: Project, extension: PackerExtension, variant: BaseVariant) {
 
-        //create single channelTask
+        //创建单个（自定义）渠道打包的task ， task("channel + flavor + buildtype"), 一次打出一个variant的一个channel渠道包
         extension.channelContainer.forEach { channelEntry: Map.Entry<String, Channel> ->
             project.task("$PACK_TASK_PREFIX${channelEntry.key.capitalize()}${variant.name.capitalize()}", InjectTask::class) {
                 this.dependsOn.add(variant.assembleProvider)
@@ -56,7 +56,7 @@ open class NPackerPlugin : Plugin<Project> {
             }
         }
 
-        //创建FlavorTask flavor 还有必要吗?
+        //创建variant(falvor + buildtype) 所有渠道包的task,  task("flavor + buildtype"), 一次打出一个variant的所有渠道包
         val packTask = project.task("$PACK_TASK_PREFIX${variant.name.capitalize()}", InjectTask::class) {
             this.dependsOn.add(variant.assembleProvider)
             this.extension = extension
