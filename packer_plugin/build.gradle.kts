@@ -24,7 +24,7 @@ gradlePlugin {
     plugins {
         register(Publish.PLUGIN_ID) {
             id = Publish.PLUGIN_ID
-            implementationClass = "PackerPlugin"
+            implementationClass = "com.nier.packer.NPackerPlugin"
         }
     }
 }

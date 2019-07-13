@@ -16,17 +16,25 @@ import java.util.*
  * Date 2018/7/26
  */
 
-open class PackerExtension() {
+open class PackerExtension {
 
-    var apkOutputDir: String? = null
-    var apkNamePattern: String? = null
-    var mappingOutputDir: String? = null
-    var channelContainer = ChannelContainer()
+    var apkOutputDir: String? = null //apk输出路径
+    var apkNamePattern: String? = null //apk输出名字规则
+    var mappingOutputDir: String? = null //mappingOutputDir文件路径
+    var channelContainer = ChannelContainer() //渠道容器
 
+    /**
+     *  渠道配置方法, gradle脚本配置渠道信息的方法
+     * npacker {
+     *      channels {
+     *
+     *      }
+     * }
+     */
     fun channels(configuration: Action<ChannelContainer>) {
+        //todo closure是什么类型的，为什么参数传递进去就会在参数上下文执行?
         configuration.execute(this.channelContainer)
     }
-
 
     internal fun clone(): PackerExtension {
         val cloned = PackerExtension()
@@ -37,11 +45,17 @@ open class PackerExtension() {
         return cloned
     }
 
+    /**
+     * apk输出路径地址
+     */
     internal fun getOutputDir(project: Project): String? {
         return apkOutputDir
                 ?: defaultOutPutDir(project)
     }
 
+    /**
+     * apk名字匹配规则
+     */
     internal fun buildApkName(channel: String, variant: BaseVariant, project: Project): String {
 
         val channelPattern = apkNamePattern
@@ -52,8 +66,11 @@ open class PackerExtension() {
                 .toString() + ".apk"
     }
 
+    /**
+     * 匹配templateMap
+     */
     private fun templateMap(channel: String, sourceVariant: BaseVariant, project: Project): HashMap<String, Any?> {
-        return hashMapOf<String, Any?>(
+        return hashMapOf(
                 "appName" to project.name,
                 "projectName" to project.rootProject.name,
                 "channel" to channel,
@@ -65,11 +82,17 @@ open class PackerExtension() {
                 "buildTime" to SimpleDateFormat("yyyyMMddHHmmss").format(Date())
         )
     }
+
+    /**
+     * 默认输出地址
+     */
+    private fun defaultOutPutDir(project: Project): String = "${project.rootDir}${File.separator}npacker${File.separator}outputs${File.separator}apk"
+
+    /**
+     * 默认输出Apk名字
+     */
+    private fun defaultApkName(channel: String, variant: BaseVariant): String = "$channel${variant.name?.capitalize()}.apk"
 }
-
-fun defaultOutPutDir(project: Project): String = "${project.rootDir}${File.separator}packer${File.separator}outputs${File.separator}apk"
-
-fun defaultApkName(channel: String, variant: BaseVariant): String = "$channel${variant.name?.capitalize()}.apk"
 
 open class ChannelContainer : HashMap<String, Channel> {
 
