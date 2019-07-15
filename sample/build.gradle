@@ -81,12 +81,14 @@ android {
         debug {
             signingConfig signingConfigs.v2
             buildConfigField "String", "field1", "\"debugbuildTypesfield1\""
+            buildConfigField "String", "buildTypeField", "\"debugbuildTypeField2233\""
 //            buildConfigField("String", "testString", "\"lalalala\"")
         }
         release {
             minifyEnabled false
             signingConfig signingConfigs.v2
             buildConfigField "String", "field1", "\"releasebuildTypesfield1\""
+            buildConfigField "String", "buildTypeField", "\"releasebuildTypeField6666\""
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

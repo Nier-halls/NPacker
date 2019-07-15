@@ -4,9 +4,10 @@ import android.content.pm.PackageManager
 import android.util.Log
 import com.nier.mypluginapplication.BuildConfig
 import com.nier.mypluginapplication.MyApp
-import com.nier.packer.Packer
+import com.nier.packer.NPacker
 import java.io.File
 import java.io.IOException
+import java.util.jar.Pack200
 
 /**
  * Created by fgd
@@ -14,10 +15,10 @@ import java.io.IOException
  */
 class ChannelBuildConfigFields private constructor() : IBuildConfigFields {
 
-    private val packer: Packer
+    private val packer: NPacker
 
     init {
-        packer = Packer.init(getApkFile())
+        packer = NPacker.init(getApkFile())
     }
 
     companion object {
@@ -27,7 +28,7 @@ class ChannelBuildConfigFields private constructor() : IBuildConfigFields {
 
 
     override fun <T> getField(key: String): T? {
-        return packer.buildField<T>(key)
+        return packer.findBuildField<T>(key)
     }
 
 

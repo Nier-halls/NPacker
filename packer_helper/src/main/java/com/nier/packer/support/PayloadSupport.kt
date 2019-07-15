@@ -13,6 +13,25 @@ import java.nio.ByteBuffer
  */
 
 
+/**
+ * 添加一个追加信息到SignBlock的payload中
+ */
+internal fun addPayload(apk: Apk, payload: IExtraPayloadData) {
+    if (apk.invalid() && verifyApk(apk.source)) {
+        throw IllegalArgumentException("apk not init, do you forget invoke init()")
+    }
+    //先将旧的数据读取出来
+    val payloads = readPayload(apk)
+    //检查是否存在V2的签名
+    if (payloads.isEmpty() || payloads[com.nier.packer.APK_SIGN_V2_KEY] == null) {
+        throw IOException("Missing v2 sign block.")
+    }
+    //构造新的payload数据集并且写入到apk中
+    val payloadDataContent = apk.mExtraPayloadProtocol.wrap(payload)
+    payloads[payload.key()] = payloadDataContent
+    writeValues(apk, payloads)
+}
+
 internal fun getPayloadById(apk: Apk, id: Int): ByteBuffer? {
     return readPayload(apk)[id]
 }
@@ -31,7 +50,7 @@ private fun readPayload(apk: Apk): HashMap<Int, ByteBuffer> {
         val payloadBuffer = allocateBuffer(apk.mSignBlockSize.toInt() - com.nier.packer.SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE - com.nier.packer.APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
         read(payloadBuffer)
         payloadBuffer.position(0)
-        return readValues(payloadBuffer, HashMap())
+        return readPayloadValues(payloadBuffer)
     }
     throw IOException("unknow exception happened.")
 }
@@ -39,7 +58,7 @@ private fun readPayload(apk: Apk): HashMap<Int, ByteBuffer> {
 /**
  * 递归获取payload中保存的所有键值对
  */
-private fun readValues(signBlock: ByteBuffer, values: HashMap<Int, ByteBuffer>): HashMap<Int, ByteBuffer> {
+private fun readPayloadValues(signBlock: ByteBuffer, values: HashMap<Int, ByteBuffer> = HashMap()): HashMap<Int, ByteBuffer> {
     println("apk sign block remain -> ${signBlock.remaining()}")
     if (signBlock.remaining() < com.nier.packer.SIGN_BLOCK_PAYLOAD_VALUE_LENGTH_BYTE_SIZE) {
         return values
@@ -53,27 +72,9 @@ private fun readValues(signBlock: ByteBuffer, values: HashMap<Int, ByteBuffer>):
     val content = signBlock.slice(valueSize.toInt() - com.nier.packer.SIGN_BLOCK_PAYLOAD_ID_BYTE_SIZE)
     println("content.position() = ${content.position()}, content.limit() = ${content.limit()}")
     values[id] = content
-    return readValues(signBlock, values)
+    return readPayloadValues(signBlock, values)
 }
 
-/**
- * 添加一个追加信息到SignBlock的payload中
- */
-internal fun addPayload(apk: Apk, payload: IExtraPayloadData) {
-    if (apk.invalid() && verifyApk(apk.source)) {
-        throw IllegalArgumentException("apk not init, do you forget invoke init()")
-    }
-    //先将旧的数据读取出来
-    val payloads = readPayload(apk)
-    //检查是否存在V2的签名
-    if (payloads.isEmpty() || payloads[com.nier.packer.APK_SIGN_V2_KEY] == null) {
-        throw IOException("Miss sign v2 block.")
-    }
-    //构造新的payload数据集并且写入到apk中
-    val payloadDataContent = apk.mExtraPayloadProtocol.wrap(payload)
-    payloads[payload.key()] = payloadDataContent
-    writeValues(apk, payloads)
-}
 
 /**
  * 根据apk的SignBlock协议写入到apk中
@@ -83,7 +84,7 @@ private fun writeValues(apk: Apk, payloads: HashMap<Int, ByteBuffer>) {
         val outer = this
         println("Before write extra value, apk size = ${size()}")
 
-        //在数据写入改变前将原始的CentralDirectory后面的数据保存起来等待最后写入
+        //在数据写入改变前将原始的CentralDirectory后面的数据暂存起来等待最后写入
         val sourceRemainAfterSignBlock = allocateBuffer((size() - apk.mCentralDirectoryStartOffset).toInt()) {
             position(apk.mCentralDirectoryStartOffset)
             outer.read(this)
@@ -93,7 +94,8 @@ private fun writeValues(apk: Apk, payloads: HashMap<Int, ByteBuffer>) {
         //跳过开始8子节用于记录SignBlock大小的字段，先进行Payload的写入
         position(apk.mSignBlockOffset + com.nier.packer.APK_SIGN_BLOCK_SIZE_BYTE_SIZE) //跳过size
         var signBlockLength: Long = 0
-        //一次写入新的payload到SignBlock中
+
+        //循环写入新的payload到SignBlock中
         payloads.entries.forEach { payloadEntry ->
             println("payload value limit = ${payloadEntry.value.limit()}")
             //写入Payload Entry 数据长度
@@ -158,13 +160,16 @@ private fun writeValues(apk: Apk, payloads: HashMap<Int, ByteBuffer>) {
             }
         }
 
-        //将CentralDirectory直至结尾的数据写入到apk中
+        //将之前暂存的CentralDirectory直至结尾的所有数据重新写回到apk中
         position(newCentralDirectoryStartOffset)
         write { sourceRemainAfterSignBlock }
+
+        //更新End of central directory中记录Central directory start offset的数据段
         write {
-            //更新End of central directory中记录Central directory start offset的数据段
-            val newEOCDSignature = findApkEOCDSignatureOffset(outer)
+            val newEOCDSignature = findApkEOCDSignatureOffset(this)
+            //推算出eocd中cdso的位置offset
             position(calculateCentralDirectoryOffset(newEOCDSignature))
+
             allocateBuffer(com.nier.packer.OFFSET_OF_START_OF_CENTRAL_DIRECTORY_BYTE_SIZE) {
                 putInt(newCentralDirectoryStartOffset.toInt())
                 finish()

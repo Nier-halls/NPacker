@@ -8,11 +8,13 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.kotlin.dsl.*
-import java.util.function.Consumer
+import java.io.File
 
 /**
  * Created by Nier
  * Date 2018/7/26
+ *
+ * todo 统一日志打印
  */
 open class NPackerPlugin : Plugin<Project> {
 
@@ -40,74 +42,80 @@ open class NPackerPlugin : Plugin<Project> {
      * 生成添加渠道信息的task和相应的依赖任务
      */
     private fun generateTaskAndBuildDepends(project: Project, extension: PackerExtension, variant: BaseVariant) {
+        val channels = extension.channelContainer
+        if (channels.isEmpty()) return
 
-        //创建单个（自定义）渠道打包的task ， task("channel + flavor + buildtype"), 一次打出一个variant的一个channel渠道包
-        extension.channelContainer.forEach { channelEntry: Map.Entry<String, Channel> ->
-            project.task("$PACK_TASK_PREFIX${channelEntry.key.capitalize()}${variant.name.capitalize()}", InjectTask::class) {
+        //创建flavor task 依赖多渠道tasks
+        val flavorTaskName = "$PACK_TASK_PREFIX${variant.name.capitalize()}"
+        val flavorTask = project.tasks.findByName(flavorTaskName)
+                ?: project.task(flavorTaskName)
+
+        //创建所有渠道的tasks
+        channels.forEach { (channelName, channel): Map.Entry<String, Channel> ->
+            val channelTask = project.task("$PACK_TASK_PREFIX${channelName.capitalize()}${variant.name.capitalize()}", InjectTask::class) {
                 this.dependsOn.add(variant.assembleProvider)
-                this.extension = extension.clone()
-                val singleChannelContainer = ChannelContainer()
-                singleChannelContainer[channelEntry.key] = channelEntry.value
-                this.extension.channelContainer = singleChannelContainer
+                this.apkName = extension.buildApkName(channelName, variant, project)
+                this.outputDir = buildApkOutputFileDir(extension.getOutputDir(project), variant.flavorName, variant.buildType.name, channelName)
+                this.channel = channel
                 this.sourceVariant = variant
-//            (variant.buildType as BaseConfigImpl).addBuildConfigField(ClassFieldImpl("String", "testString", "${channelEntry.key}2233"))
-//            (variant .buildType.buildConfigFields as MutableMap<String, ClassField>)["testString"] =
-//                    ClassFieldImpl("String", "testString", "${channelEntry.key}2233")
+            }
+
+            //单flavor task 依赖该flavor下的所有channel task
+            if (channelTask !in flavorTask.dependsOn && flavorTask.name != channelTask.name) {
+                flavorTask.dependsOn.add(channelTask)
             }
         }
 
-        //创建variant(falvor + buildtype) 所有渠道包的task,  task("flavor + buildtype"), 一次打出一个variant的所有渠道包
-        val packTask = project.task("$PACK_TASK_PREFIX${variant.name.capitalize()}", InjectTask::class) {
-            this.dependsOn.add(variant.assembleProvider)
-            this.extension = extension
-            this.sourceVariant = variant
+        //创建buildType task
+        val buildTypeTaskName = "$PACK_TASK_PREFIX${variant.buildType.name.capitalize()}"
+        val typeTask = project.tasks.findByName(buildTypeTaskName)
+                ?: project.task(buildTypeTaskName)
+        //buildType Task 依赖该buildType对应的所有flavor tasks
+        if (flavorTask !in typeTask.dependsOn && typeTask.name != flavorTask.name) {
+            typeTask.dependsOn.add(flavorTask)
         }
 
-        //创建buildTypeTask
-        val buildTypeName = "$PACK_TASK_PREFIX${variant.buildType.name.capitalize()}"
-        val typeTask = project.tasks.findByName(buildTypeName)
-                ?: generateTypeTask(project, buildTypeName)
-        //buildTypeTask dependsOn packTask
-        if (packTask !in typeTask.dependsOn && typeTask.name != packTask.name) {
-            typeTask.dependsOn.add(packTask)
-        }
 
-        //create rootTask
+        //创建多渠道打包总root task
         val rootTask = project.tasks.findByName(ROOT_TASK_NAME)
-                ?: generateRootTask(project)
-        //rootTask dependsOn buildTypeTask, run rootTask build all apk
+                ?: project.task(ROOT_TASK_NAME)
+        //rootTask 依赖所有buildType tasks(间接依赖所有多渠道打包tasks)
         if (typeTask !in rootTask.dependsOn && rootTask.name != typeTask.name) {
             rootTask.dependsOn.add(typeTask)
         }
     }
 
-    /**
-     * 生成总任务，依赖所有子任务，方便直接执行所有渠道打包
-     */
-    private val generateRootTask: (Project) -> Task = {
-        val rootTask = it.task(ROOT_TASK_NAME) {
-            //todo print and check configuration
-            println("create Root task -> ${this.name}")
+    private fun buildApkOutputFileDir(packerOutput: String, flavor: String?, buildType: String?, channel: String): String {
+        val packerOutputBlock = if (packerOutput[packerOutput.length - 1].toString() == File.separator) {
+            packerOutput
+        } else {
+            packerOutput + File.separator
         }
-        rootTask
-    }
 
-    /**
-     * 分组任务，分组依赖子任务，方便分组一大包部分渠道
-     * 具体根据builtType的name来进行分组
-     */
-    private val generateTypeTask: (Project, String) -> Task = { project, name ->
-        project.task(name) {
-            println("create Type Group task -> ${this.name}")
+
+        val flavorBlock = if (!flavor.isNullOrBlank()) {
+            "${File.separator}$flavor"
+        } else {
+            ""
         }
+
+        val buildTypeBlock = if (!buildType.isNullOrBlank()) {
+            "${File.separator}$buildType"
+        } else {
+            ""
+        }
+
+        return packerOutputBlock + File.separator + channel + flavorBlock + buildTypeBlock
     }
 
     /**
      * 配置用于清除打包APK的clean task
      */
     private fun configCleanTask(project: Project, cleanDir: String) {
-        project.tasks.named("clean").get().doLast(closureOf<Any> {
+        val cleanTask = project.tasks.findByName("clean")
+                ?: project.tasks.create("clean", mutableMapOf("type" to Delete::class.java))
+        cleanTask.doLast {
             (this as Delete).delete(cleanDir)
-        })
+        }
     }
 }

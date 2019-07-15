@@ -21,7 +21,7 @@ internal class Apk private constructor(var source: File) {
     internal lateinit var mExtraPayloadProtocol: IExtraPayloadHandler
 
     companion object {
-        internal fun createApk(sourceDir: File, extraPayloadHandler: IExtraPayloadHandler = ExtraPayloadHandler()): Apk {
+        internal fun createApk(sourceDir: File, extraPayloadHandler: IExtraPayloadHandler = DefaultExtraPayloadHandler()): Apk {
             if (!sourceDir.exists()) println("apk not found.")
             return Apk(sourceDir).apply {
                 mExtraPayloadProtocol = extraPayloadHandler
@@ -107,7 +107,7 @@ internal class Apk private constructor(var source: File) {
 ////    val map2 = hashMapOf("3" to 3, "2" to 4)
 ////    map1.putAll(map2)
 ////    println(map1)
-////    val s: String = "Packer Ng Sig V2"
+////    val s: String = "NPacker Ng Sig V2"
 ////    s.toByteArray(Charsets.UTF_8)
 ////
 ////    val buffer = allocateBuffer(20)

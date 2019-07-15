@@ -36,19 +36,19 @@ open class PackerExtension {
         configuration.execute(this.channelContainer)
     }
 
-    internal fun clone(): PackerExtension {
-        val cloned = PackerExtension()
-        cloned.apkNamePattern = this.apkNamePattern
-        cloned.apkOutputDir = this.apkOutputDir
-        cloned.mappingOutputDir = this.mappingOutputDir
-        cloned.channelContainer = this.channelContainer.clone()
-        return cloned
-    }
+//    internal fun clone(): PackerExtension {
+//        val cloned = PackerExtension()
+//        cloned.apkNamePattern = this.apkNamePattern
+//        cloned.apkOutputDir = this.apkOutputDir
+//        cloned.mappingOutputDir = this.mappingOutputDir
+//        cloned.channelContainer = this.channelContainer.clone()
+//        return cloned
+//    }
 
     /**
      * apk输出路径地址
      */
-    internal fun getOutputDir(project: Project): String? {
+    internal fun getOutputDir(project: Project): String {
         return apkOutputDir
                 ?: defaultOutPutDir(project)
     }
@@ -116,10 +116,10 @@ open class ChannelContainer : HashMap<String, Channel> {
         }
     }
 
-    /**
-     * 浅拷贝
-     */
-    override fun clone(): ChannelContainer {
-        return ChannelContainer(this)
-    }
+//    /**
+//     * 浅拷贝
+//     */
+//    override fun clone(): ChannelContainer {
+//        return ChannelContainer(this)
+//    }
 }

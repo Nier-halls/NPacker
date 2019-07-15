@@ -82,6 +82,7 @@ fun ByteBuffer.recycle() {
             if (sFourSizeByteCache.size < CACHE_SIZE) {
                 clear()
                 sFourSizeByteCache.add(this)
+                return
             }
         }
     }
@@ -90,6 +91,7 @@ fun ByteBuffer.recycle() {
             if (sFourSizeByteCache.size < CACHE_SIZE) {
                 clear()
                 sEightSizeByteCache.add(this)
+                return
             }
         }
     }

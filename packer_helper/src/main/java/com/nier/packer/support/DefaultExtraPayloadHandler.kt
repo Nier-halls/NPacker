@@ -8,9 +8,11 @@ import java.nio.ByteBuffer
 /**
  * Created by Nier
  * Date 2018/8/23
+ *
+ * 用于包装渠道数据的类
  */
 
-internal class ExtraPayloadHandler : IExtraPayloadHandler {
+internal class DefaultExtraPayloadHandler : IExtraPayloadHandler {
     /**
      * PLUGIN BLOCK LAYOUT
      * OFFSET    DATA TYPE                     DESCRIPTION

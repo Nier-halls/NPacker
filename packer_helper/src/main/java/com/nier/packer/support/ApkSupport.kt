@@ -61,6 +61,7 @@ internal fun getSignBlockOffsetAndSize(apkChannel: FileChannel, centralDirectory
 
     val tempBuffer = allocateBuffer(com.nier.packer.APK_SIGN_BLOCK_SIZE_BYTE_SIZE + com.nier.packer.APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
     apkChannel.read(tempBuffer)
+    //读取v2签名magic number是否符合预期
     val signBlockMagicLow = tempBuffer.getLong(com.nier.packer.APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE)
     val signBlockMagicHigh = tempBuffer.getLong(com.nier.packer.APK_SIGN_BLOCK_MAGIC_NUM_BYTE_SIZE * 2)
     if (signBlockMagicLow == com.nier.packer.APK_SIGN_BLOCK_MAGIC_LOW &&
@@ -71,9 +72,10 @@ internal fun getSignBlockOffsetAndSize(apkChannel: FileChannel, centralDirectory
         println("APK_SIGN_BLOCK_MAGIC_LOW=${com.nier.packer.APK_SIGN_BLOCK_MAGIC_LOW}  APK_SIGN_BLOCK_MAGIC_HIGH=${com.nier.packer.APK_SIGN_BLOCK_MAGIC_HIGH}.")
         return Pair(-1, 0)
     }
+    //读取整个sign block的size
     val signBlockSize = tempBuffer.getLong(0)
     //size in bytes (excluding this field)
-    //size不包括第一个size字段所占的长度8所以计算offset要吧这个8计算在内
+    //size不包括第一个size字段所占的长度8所以计算最终的sign block offset要把这个8的长度计算进去
     val signBlockOffset = centralDirectoryStartOffset - signBlockSize - com.nier.packer.APK_SIGN_BLOCK_SIZE_BYTE_SIZE
     if (signBlockOffset < 0) {
         throw IOException("Invalid sign block offset($signBlockOffset).")
@@ -91,8 +93,9 @@ internal fun findApkEOCDSignatureOffset(apkFileChannel: FileChannel): Long {
     val tempBuffer = ByteBuffer.allocate(com.nier.packer.END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE)
     val fileSize = apkFileChannel.size()
     if (!checkApkFileSize()) throw IOException("invalid apk size $fileSize")
+
     //从后向前找 EOCD Signature
-    for (i in fileSize - com.nier.packer.END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE downTo 0) {
+    for (i in (fileSize - com.nier.packer.END_OF_CENTRAL_DIRECTORY_SIGNATURE_BYTE_SZIE) downTo 0) {
         apkFileChannel.read(tempBuffer, i)
         tempBuffer.order(ByteOrder.LITTLE_ENDIAN)
         if (tempBuffer.getInt(0) == com.nier.packer.END_OF_CENTRAL_DIRECTORY_SIGNATURE) {
