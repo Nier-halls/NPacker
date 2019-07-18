@@ -48,11 +48,11 @@ open class NPackerPlugin : Plugin<Project> {
         //创建flavor task 依赖多渠道tasks
         val flavorTaskName = "$PACK_TASK_PREFIX${variant.name.capitalize()}"
         val flavorTask = project.tasks.findByName(flavorTaskName)
-                ?: project.task(flavorTaskName)
+                ?: project.tasks.create(flavorTaskName)
 
         //创建所有渠道的tasks
         channels.forEach { (channelName, channel): Map.Entry<String, Channel> ->
-            val channelTask = project.task("$PACK_TASK_PREFIX${channelName.capitalize()}${variant.name.capitalize()}", InjectTask::class) {
+            val channelTask = project.tasks.create("$PACK_TASK_PREFIX${channelName.capitalize()}${variant.name.capitalize()}", InjectTask::class) {
                 this.dependsOn.add(variant.assembleProvider)
                 this.apkName = extension.buildApkName(channelName, variant, project)
                 this.outputDir = buildApkOutputFileDir(extension.getOutputDir(project), variant.flavorName, variant.buildType.name, channelName)
@@ -69,7 +69,7 @@ open class NPackerPlugin : Plugin<Project> {
         //创建buildType task
         val buildTypeTaskName = "$PACK_TASK_PREFIX${variant.buildType.name.capitalize()}"
         val typeTask = project.tasks.findByName(buildTypeTaskName)
-                ?: project.task(buildTypeTaskName)
+                ?: project.tasks.create(buildTypeTaskName)
         //buildType Task 依赖该buildType对应的所有flavor tasks
         if (flavorTask !in typeTask.dependsOn && typeTask.name != flavorTask.name) {
             typeTask.dependsOn.add(flavorTask)
@@ -78,7 +78,7 @@ open class NPackerPlugin : Plugin<Project> {
 
         //创建多渠道打包总root task
         val rootTask = project.tasks.findByName(ROOT_TASK_NAME)
-                ?: project.task(ROOT_TASK_NAME)
+                ?: project.tasks.create(ROOT_TASK_NAME)
         //rootTask 依赖所有buildType tasks(间接依赖所有多渠道打包tasks)
         if (typeTask !in rootTask.dependsOn && rootTask.name != typeTask.name) {
             rootTask.dependsOn.add(typeTask)

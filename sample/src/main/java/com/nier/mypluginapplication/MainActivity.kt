@@ -2,7 +2,7 @@ package com.nier.mypluginapplication
 
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import java.io.File
 import com.nier.packer.NPacker
 import kotlinx.android.synthetic.main.activity_main.*
