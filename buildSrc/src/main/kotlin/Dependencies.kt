@@ -33,10 +33,16 @@ fun version(dependency: String): String {
 }
 
 object Dependencies {
-    val android_gradle_plugin = "com.android.tools.build:gradle:${version("android_gradle_plugin")}"
-    val android_apksig = "com.android.tools.build:apksig:${version("android_gradle_plugin")}"
-    val kotlin_gradle_plugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${version("kotlin")}"
-    val kotlin_stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${version("kotlin")}"
-    val anko = "com.google.code.gson:gson:${version("anko")}"
-    val gson = "com.google.code.gson:gson:${version("gson")}"
+//    val android_gradle_plugin = "com.android.tools.build:gradle:${version("android_gradle_plugin")}"
+//    val android_apksig = "com.android.tools.build:apksig:${version("android_gradle_plugin")}"
+//    val kotlin_gradle_plugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${version("kotlin")}"
+//    val kotlin_stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${version("kotlin")}"
+//    val anko = "com.google.code.gson:gson:${version("anko")}"
+//    val gson = "com.google.code.gson:gson:${version("gson")}"
+
+    val android_gradle_plugin = "com.android.tools.build:gradle:4.8.0}"
+    val android_apksig = "com.android.tools.build:apksig:4.8.0}"
+    val kotlin_gradle_plugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.41"
+    val kotlin_stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.41"
+    val gson = "com.google.code.gson:gson:2.8.2"
 }
