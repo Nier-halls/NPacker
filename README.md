@@ -20,11 +20,11 @@
     * python脚本的实现版本
     * python脚本的读取渠道信息版本
     
-##NPacker实现的原理
-###Android 签名机制
+## NPacker实现的原理
+### Android 签名机制
 [Android 签名机制](./doc/AppSignNote.md)
 
-###APK Sign v2
+### APK Sign v2
 Android APK在Sign v1版本的时候是标准的ZIP文件，签名信息都放在了META-INF中，而在Sign v2版本的时候APK文件中多了一块Sign Block的数据区块
 
 ![APK Sign Struct](./doc/apk_sign_struct.png)
@@ -39,8 +39,8 @@ Sign v2签名把整个APk文件分成若干个chunk，然后对chunk进行签名
 
 NPacker就是利用这点向SignBlock v2数据段中写入数据而不影响APK签名有效性来完成渠道信息的注入，从而达到打一个包复制出多个渠道包分别写入渠道信息来提高打包效率
 
-###NPacker具体实现
-####Task创建
+### NPacker具体实现
+#### Task创建
 NPacker模拟Android的Assemble创建了4类Task，分别是[Root]_Task、[BuildType]_Task、[Flavor]_Task、[Channel]_Task;
 * Root、BuildType、Flavor：优化多渠道打包分类
     * Root：包含所有生成渠道包的Task
@@ -58,7 +58,7 @@ NPacker模拟Android的Assemble创建了4类Task，分别是[Root]_Task、[Build
     [Channel]_Task    dependsOn  variant.assemble
 ```
 
-####ChannelTask的实现
+#### ChannelTask的实现
 ChannelTask的实现类为InjectTask,每个用于注入渠道信息并且生成渠道包的InjectTask依赖于AndroidPlugin的assembleTask；assembleTask就是用对应一个APK包编译并且生成的Task；
 InjectTask的主要工作原理主要分为4步：
 1. 在assembleTask执行完成后，获取APK的生成路径
@@ -66,23 +66,23 @@ InjectTask的主要工作原理主要分为4步：
 3. 读取我们在自己定义的Extensions中定义的渠道信息
 4. 将渠道信息按照协议写入到SignBlock中去
 
-####渠道信息的注入
+#### 渠道信息的注入
 InjectTask的核心工作就是将渠道信息写入到SignBlock中，这里面的关键在于如何定位到SignBlock到位置，以及SignBlock中数据存储协议。
 
 ![APK Sign Protection](./doc/npacker_implement.png)
 
 
-#####寻找End of Central Directory
+##### 寻找End of Central Directory
 首先需要找到End of Central Directory在整个APK中到位置，因为EOCD(End of Central Directory)中保存着Central Directory块到偏移量，而Central Directory数据块紧挨着Sign Block；
 EOCD数据块是以魔术0x06054b50开头到，因此我们从后往前遍历数据先找到0x06054b50。
 
-#####寻找Central Directory Start Offset
+##### 寻找Central Directory Start Offset
 找到量EOCD后，我们可以根据EOCD到数据结构推算出Central Directory Start Offset保存到位置，在EOCD相对16偏移量的位置。这个时候读取这个位置保存的数据，里面就是Central Directory数据块相对于整个APK的偏移位置。
 
-#####寻找Sign Block Offset
+##### 寻找Sign Block Offset
 因为之前找到的Central Directory是紧挨着Sign Block的，因此这里向前读取16byte的数据验证一下SignBlock的魔数，确认前方是否就是SignBlock。如果是则再向前读取8byte的数据获取SignBlock的长度。(SignBlock中有前后两端都有8byte来保存SignBlock的size，这个size是包含后端8byte长度数据块，不包含前端的8byte数据块)
 
 根据读取到的SignBlock的size向前推算出Sign Block Offset偏移量，此时就可以读取原有的存储在SignBlock中的Payload数据再添加自定义的渠道数据进去。这里按照协议我们自己也创建一个payload数据的key-value数据块。
 
-#####重新写回Payload到Sign Block
+##### 重新写回Payload到Sign Block
 将新的Payload写回到SignBlock中，将之前的Central Directory和EOCD重新拼接到SignBlock后面，同时需要刷新EOCD中保存的Central Directory Offset。
