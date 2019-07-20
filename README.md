@@ -7,13 +7,6 @@
     * Task的依赖创建，extensions的创建
     * InjectTask的实现
     * 渠道信息的注入
-        * 根据apk文件找到End Of Central Directory (0x06054b50)
-        * 根据EOCD找到Central Directory Start Offset
-        * 根据Central Directory找到Sign Block
-        * 读取Sign Block中原有的Payload
-        * 加入合并新的自定义的Payload
-        * 重新写回到Sign Block中
-        * 恢复Central Directory Start往后的所有数据，刷新EOCD中的Central Directory Start Offset字段
 * NPacker后续需要改进点 future
     * PayloadSupport和ApkSupport的职责划分
     * 日志权限的统一
