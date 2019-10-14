@@ -14,7 +14,12 @@ import java.io.File
  * Created by Nier
  * Date 2018/7/26
  *
- * todo 统一日志打印
+ * 前提：
+ *   1. 在afterEvaluate后所有gradle的task已经全部创建完毕
+ *   2. android extension中包含所有的渠道信息variant
+ *   3. variant.assembleProvider能够获取到用于打包的task
+ *   4. 打包完成后执行注入渠道信息的操作
+
  */
 open class NPackerPlugin : Plugin<Project> {
 
@@ -40,6 +45,18 @@ open class NPackerPlugin : Plugin<Project> {
 
     /**
      * 生成添加渠道信息的task和相应的依赖任务
+     *  Task依赖关系如下
+     *                                              pack
+     *                                         /           \
+     *                                    /                     \
+     *                           packDebug                         packReleasae
+     *                           /      \                           /         \
+     *                packDevDebug     packChannelDebug   packDevReleasae     packChannelReleasae
+     *                  /      \             / \            / \                           /    \
+     *  packShareDevDebug   packQQDevDebug  ......        ......  packShareChannelReleasae    packQQChannelReleasae
+     *
+     *  buildType  和 flavor是平级关系
+     *
      */
     private fun generateTaskAndBuildDepends(project: Project, extension: PackerExtension, variant: BaseVariant) {
         val channels = extension.channelContainer
@@ -50,7 +67,7 @@ open class NPackerPlugin : Plugin<Project> {
         val flavorTask = project.tasks.findByName(flavorTaskName)
                 ?: project.tasks.create(flavorTaskName)
 
-        //创建所有渠道的tasks
+        //创建所有渠道的tasks packShouchaoDevDebug
         channels.forEach { (channelName, channel): Map.Entry<String, Channel> ->
             val channelTask = project.tasks.create("$PACK_TASK_PREFIX${channelName.capitalize()}${variant.name.capitalize()}", InjectTask::class) {
                 this.dependsOn.add(variant.assembleProvider)
@@ -60,13 +77,13 @@ open class NPackerPlugin : Plugin<Project> {
                 this.sourceVariant = variant
             }
 
-            //单flavor task 依赖该flavor下的所有channel task
+            //单flavor task 依赖该flavor下的所有channel task packDevDebug
             if (channelTask !in flavorTask.dependsOn && flavorTask.name != channelTask.name) {
                 flavorTask.dependsOn.add(channelTask)
             }
         }
 
-        //创建buildType task
+        //创建buildType task packDebug
         val buildTypeTaskName = "$PACK_TASK_PREFIX${variant.buildType.name.capitalize()}"
         val typeTask = project.tasks.findByName(buildTypeTaskName)
                 ?: project.tasks.create(buildTypeTaskName)
@@ -76,7 +93,7 @@ open class NPackerPlugin : Plugin<Project> {
         }
 
 
-        //创建多渠道打包总root task
+        //创建多渠道打包总root task pack
         val rootTask = project.tasks.findByName(ROOT_TASK_NAME)
                 ?: project.tasks.create(ROOT_TASK_NAME)
         //rootTask 依赖所有buildType tasks(间接依赖所有多渠道打包tasks)
